@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#100a19">
+<title>Game Maker Dude — Admin</title>
+<style>
+:root{color-scheme:dark;--bg:#100a19;--panel:#1c122b;--panel2:#26183a;--purple:#b58aff;--ink:#f8f4ff;--muted:#b9a9d0;--line:#392650}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#43235e 0%,var(--bg) 58%);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+header{text-align:center;padding:42px 16px 20px}header .mark{font-size:38px}h1{font-size:clamp(1.8rem,6vw,2.8rem);margin:8px 0}header p,.muted{color:var(--muted);line-height:1.5}
+main{width:min(900px,calc(100% - 28px));margin:20px auto 60px}.panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:clamp(18px,4vw,28px);box-shadow:0 20px 55px #0004;margin-bottom:16px}
+input{width:100%;background:#120c1c;border:1px solid #594071;border-radius:11px;padding:13px;color:var(--ink);font:inherit;margin:8px 0 12px}button{border:0;border-radius:11px;padding:12px 18px;background:linear-gradient(100deg,#c5a3ff,#9866e7);color:#180e25;font:inherit;font-weight:800;cursor:pointer}button.secondary{background:#342443;color:var(--ink);border:1px solid #594071}button:disabled{opacity:.55}
+.status{min-height:24px;color:var(--muted);font-size:.92rem}.good{color:#b9f2cc}.bad{color:#ffb7c2}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.stats{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.stat{background:#140e20;border:1px solid #342443;border-radius:12px;padding:12px 16px;min-width:130px}.stat strong{display:block;font-size:1.5rem}.stat span{color:var(--muted);font-size:.85rem}
+#search{max-width:340px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:540px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #392650}th{color:#d9c7ff;font-size:.85rem}td{font-size:.93rem}.pill{display:inline-block;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:700}.yes{background:#17432c;color:#b9f2cc}.no{background:#49351a;color:#ffdfa5}.empty{color:var(--muted);padding:20px 4px}
+#dashboard{display:none}.tiny{font-size:.78rem;color:#8e7da5;margin-top:18px}
+</style>
+</head>
+<body>
+<header><div class="mark">◯</div><h1>Game Maker Dude — Admin</h1><p>Private contestant dashboard</p></header>
+<main>
+<section class="panel" id="login">
+<h2>Admin sign in</h2><p class="muted">Enter your admin email and we'll send you a one-time sign-in link. No password needed.</p>
+<form id="login-form"><input id="email" type="email" autocomplete="email" placeholder="Admin email" required><button id="send" type="submit">Send sign-in link</button></form>
+<p id="login-status" class="status" role="status" aria-live="polite"></p>
+</section>
+<section class="panel" id="dashboard">
+<div class="toolbar"><div><h2>Joined members</h2><p class="muted">Newest signups appear first.</p></div><div><button class="secondary" id="refresh">Refresh</button> <button class="secondary" id="logout">Sign out</button></div></div>
+<div class="stats"><div class="stat"><strong id="total">0</strong><span>Total signups</span></div><div class="stat"><strong id="verified">0</strong><span>Verified</span></div><div class="stat"><strong id="waiting">0</strong><span>Not verified</span></div></div>
+<input id="search" type="search" placeholder="Search Instagram username…" aria-label="Search usernames">
+<div class="table-wrap"><table><thead><tr><th>Instagram username</th><th>Joined</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody></table></div>
+<p id="dash-status" class="status" role="status" aria-live="polite"></p>
+<p class="tiny">Only the authorized admin email can load this list. Keep your email account secure.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+const URL="https://asiyltpfjvtwywrbxrge.supabase.co";
+const KEY="sb_publishable_592XZcMAYP6sI2D-TDEp3g_G1FzXpQn";
+const ADMIN_EMAIL="bigballseo@gmail.com";
+const REDIRECT="https://ericmanleyisgame.github.io/game-maker-dudes-games/admin/";
+const api=supabase.createClient(URL,KEY);
+const login=document.getElementById("login"),dashboard=document.getElementById("dashboard"),loginStatus=document.getElementById("login-status"),dashStatus=document.getElementById("dash-status");
+let signups=[];
+function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
+function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
+async function load(){
+ say(dashStatus,"Loading members…");
+ const {data:{session}}=await api.auth.getSession();
+ if(!session){showLoggedIn(false);return}
+ const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,Authorization:"Bearer "+session.access_token}});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok){say(dashStatus,result.error||"Couldn't load members.","bad");return}
+ signups=result.signups||[];
+ document.getElementById("total").textContent=signups.length;
+ const verified=signups.filter(x=>x.verified).length;
+ document.getElementById("verified").textContent=verified;
+ document.getElementById("waiting").textContent=signups.length-verified;
+ render();say(dashStatus,"List is up to date.","good");
+}
+function render(){
+ const term=document.getElementById("search").value.trim().replace(/^@/,"").toLowerCase();
+ const filtered=signups.filter(x=>x.username.toLowerCase().includes(term));
+ const body=document.getElementById("rows");body.replaceChildren();
+ if(!filtered.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=3;td.className="empty";td.textContent=signups.length?"No usernames match your search.":"Nobody has joined yet.";tr.append(td);body.append(tr);return}
+ for(const p of filtered){
+  const tr=document.createElement("tr"),name=document.createElement("td"),date=document.createElement("td"),status=document.createElement("td"),pill=document.createElement("span");
+  name.textContent="@"+p.username;date.textContent=new Date(p.created_at).toLocaleString();
+  pill.className="pill "+(p.verified?"yes":"no");pill.textContent=p.verified?"Verified":"Not verified";status.append(pill);tr.append(name,date,status);body.append(tr);
+ }
+}
+document.getElementById("login-form").addEventListener("submit",async e=>{
+ e.preventDefault();const email=document.getElementById("email").value.trim().toLowerCase();
+ if(email!==ADMIN_EMAIL){say(loginStatus,"That email isn't authorized for this dashboard.","bad");return}
+ const btn=document.getElementById("send");btn.disabled=true;say(loginStatus,"Sending your sign-in link…");
+ const {error}=await api.auth.signInWithOtp({email,options:{emailRedirectTo:REDIRECT,shouldCreateUser:true}});
+ say(loginStatus,error?error.message:"Check your inbox for the sign-in link. Open it on this device to access the dashboard.",error?"bad":"good");btn.disabled=false;
+});
+document.getElementById("refresh").addEventListener("click",load);
+document.getElementById("logout").addEventListener("click",async()=>{await api.auth.signOut();showLoggedIn(false);say(loginStatus,"Signed out.")});
+document.getElementById("search").addEventListener("input",render);
+api.auth.onAuthStateChange((_event,session)=>{if(session){showLoggedIn(true);load()}else showLoggedIn(false)});
+(async()=>{const {data:{session}}=await api.auth.getSession();if(session){showLoggedIn(true);await load()}else showLoggedIn(false)})();
+</script>
+</body>
+</html>
