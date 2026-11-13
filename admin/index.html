@@ -44,9 +44,8 @@ const login=document.getElementById("login"),dashboard=document.getElementById("
 let signups=[];
 function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
 function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
-async function load(){
+async function load(session){
  say(dashStatus,"Loading members…");
- const {data:{session}}=await api.auth.getSession();
  if(!session){showLoggedIn(false);return}
  const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,Authorization:"Bearer "+session.access_token}});
  const result=await response.json().catch(()=>({}));
@@ -76,11 +75,11 @@ document.getElementById("login-form").addEventListener("submit",async e=>{
  const {error}=await api.auth.signInWithOtp({email,options:{emailRedirectTo:REDIRECT,shouldCreateUser:true}});
  say(loginStatus,error?error.message:"Check your inbox for the sign-in link. Open it on this device to access the dashboard.",error?"bad":"good");btn.disabled=false;
 });
-document.getElementById("refresh").addEventListener("click",load);
+document.getElementById("refresh").addEventListener("click",async()=>{const {data:{session}}=await api.auth.getSession();await load(session)});
 document.getElementById("logout").addEventListener("click",async()=>{await api.auth.signOut();showLoggedIn(false);say(loginStatus,"Signed out.")});
 document.getElementById("search").addEventListener("input",render);
-api.auth.onAuthStateChange((_event,session)=>{if(session){showLoggedIn(true);load()}else showLoggedIn(false)});
-(async()=>{const {data:{session}}=await api.auth.getSession();if(session){showLoggedIn(true);await load()}else showLoggedIn(false)})();
+api.auth.onAuthStateChange((_event,session)=>{if(session){showLoggedIn(true);void load(session)}else showLoggedIn(false)});
+(async()=>{const {data:{session}}=await api.auth.getSession();if(session){showLoggedIn(true);await load(session)}else showLoggedIn(false)})();
 </script>
 </body>
 </html>
