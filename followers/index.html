@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#100a19">
+<meta name="description" content="Join the next spinning-ring elimination competition.">
+<title>Join the Competition</title>
+<style>
+:root{color-scheme:dark;--bg:#100a19;--panel:#1c122b;--panel2:#26183a;--purple:#b58aff;--ink:#f8f4ff;--muted:#b9a9d0;--line:#392650}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#43235e 0%,var(--bg) 58%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{text-align:center;padding:54px 18px 28px}.mark{font-size:42px}h1{font-size:clamp(2rem,7vw,3.5rem);letter-spacing:-.05em;margin:10px 0}header p{color:var(--muted);margin:0 auto;max-width:540px;line-height:1.6}
+main{width:min(760px,calc(100% - 28px));margin:22px auto 64px}.panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,32px);box-shadow:0 20px 55px #0004;margin-bottom:18px}
+h2{margin:0 0 8px;font-size:1.3rem}.sub{color:var(--muted);font-size:.92rem;line-height:1.5;margin:0 0 20px}
+form{display:flex;gap:10px;flex-wrap:wrap}input{flex:1;min-width:190px;background:#120c1c;border:1px solid #594071;border-radius:12px;padding:14px 15px;color:var(--ink);font:inherit;outline:none}input:focus{border-color:var(--purple);box-shadow:0 0 0 3px #b58aff22}
+button{border:0;border-radius:12px;padding:14px 20px;background:linear-gradient(100deg,#c5a3ff,#9866e7);color:#180e25;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+.note{color:#9e8bb7;font-size:.8rem;line-height:1.5;margin:13px 0 0}.status{min-height:24px;margin:12px 0 0;font-size:.9rem}.status.good{color:#b9f2cc}.status.bad{color:#ffb7c2}
+.roster-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.count{color:#d9c7ff;font-variant-numeric:tabular-nums;background:#56378366;border:1px solid #7552a0;border-radius:999px;padding:6px 10px;font-size:.85rem}
+ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;max-height:420px;overflow:auto}.player{background:#140e20;border:1px solid #342443;border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}.empty{color:var(--muted);padding:14px 0}.foot{text-align:center;color:#8e7da5;font-size:.8rem;padding:6px 0 24px}
+</style>
+</head>
+<body>
+<header><div class="mark" aria-hidden="true">◯</div><h1>Join the Competition</h1><p>Drop your Instagram username below to enter. When the next competition is ready, verified contestants can be loaded into the game.</p></header>
+<main>
+<section class="panel">
+<h2>Enter your username</h2><p class="sub">No password, Instagram login, or profile-picture upload needed.</p>
+<form id="join-form"><input id="username" name="username" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@yourusername" aria-label="Instagram username" required><button id="join-button" type="submit">Join competition</button></form>
+<p class="note">Your username will appear in the public signup list. Only enter a username you are comfortable displaying publicly. Signing up does not automatically verify that you follow the Instagram account.</p>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+</section>
+<section class="panel">
+<div class="roster-head"><div><h2>People who joined</h2><p class="sub" style="margin:5px 0 0">Signups stay open.</p></div><span id="count" class="count">0 joined</span></div>
+<ul id="roster"><li class="empty">Loading signups…</li></ul>
+</section>
+<div class="foot">Made with 💜</div>
+</main>
+<script>
+const SUPABASE_URL = "https://asiyltpfjvtwywrbxrge.supabase.co";
+const SUPABASE_KEY = "sb_publishable_592XZcMAYP6sI2D-TDEp3g_G1FzXpQn";
+const endpoint = SUPABASE_URL + "/rest/v1/contest_signups";
+const headers = {"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
+const form=document.getElementById("join-form"), field=document.getElementById("username"), button=document.getElementById("join-button"), statusEl=document.getElementById("status"), roster=document.getElementById("roster"), count=document.getElementById("count");
+function say(message,type=""){statusEl.textContent=message;statusEl.className="status "+type}
+function cleanName(value){return value.trim().replace(/^@+/,"")}
+async function loadRoster(){
+ try{
+  const response=await fetch(endpoint+"?select=username,created_at&order=created_at.desc&limit=1000",{headers});
+  if(!response.ok) throw new Error("Could not load the signup list.");
+  const people=await response.json();roster.replaceChildren();count.textContent=people.length+(people.length===1?" joined":" joined");
+  if(!people.length){const li=document.createElement("li");li.className="empty";li.textContent="You're the first one here. Be the first to join!";roster.append(li);return}
+  for(const person of people){const li=document.createElement("li");li.className="player";li.textContent="@"+person.username;roster.append(li)}
+ }catch(error){roster.replaceChildren();const li=document.createElement("li");li.className="empty";li.textContent="The signup list is temporarily unavailable.";roster.append(li)}
+}
+form.addEventListener("submit",async event=>{
+ event.preventDefault();const username=cleanName(field.value);
+ if(!/^[A-Za-z0-9._]{1,30}$/.test(username)){say("Please enter a valid Instagram username (letters, numbers, periods, or underscores).","bad");return}
+ button.disabled=true;button.textContent="Joining…";say("");
+ try{
+  const response=await fetch(endpoint,{method:"POST",headers:{...headers,"Prefer":"return=minimal"},body:JSON.stringify({username})});
+  if(response.status===201){say("You're on the list! 💜","good");field.value="";await loadRoster()}
+  else if(response.status===409){say("That username has already joined.","bad")}
+  else{const detail=await response.text();if(response.status===400&&detail.toLowerCase().includes("duplicate"))say("That username has already joined.","bad");else throw new Error("Signup didn't go through. Please try again in a moment.")}
+ }catch(error){say(error.message||"Something went wrong. Please try again.","bad")}
+ finally{button.disabled=false;button.textContent="Join competition"}
+});
+loadRoster();setInterval(loadRoster,15000);
+</script>
+</body>
+</html>
