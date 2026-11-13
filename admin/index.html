@@ -41,7 +41,8 @@ const ADMIN_EMAIL="bigballseo@gmail.com";
 const REDIRECT="https://ericmanleyisgame.github.io/game-maker-dudes-games/admin/";
 
 const login=document.getElementById("login"),dashboard=document.getElementById("dashboard"),loginStatus=document.getElementById("login-status"),dashStatus=document.getElementById("dash-status");
-let signups=[];\nlet adminEmailEntered="";
+let signups=[];
+let adminEmailEntered="";
 function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
 function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
 async function load(){
