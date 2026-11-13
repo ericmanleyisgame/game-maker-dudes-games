@@ -65,7 +65,7 @@ async function loadPlayers(){
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||"Could not load the signup list.");
   players=(data.signups||[]).filter(x=>x.verified===true).map(x=>({username:String(x.username||"").replace(/^@/,"")})).filter(x=>x.username);
-  renderRoster();$("roster-card").classList.remove("hidden");
+  renderRoster();if(!running)makePreviewBalls();$("roster-card").classList.remove("hidden");
   $("start").disabled=players.length<2;$("reset").disabled=players.length===0;
   say("control-status",players.length?players.length+" verified contestants loaded.":"No verified contestants yet. Verify some signups in your admin dashboard first.");
  }catch(err){say("control-status",err.message||"Couldn't reach the signup server.");}
@@ -77,6 +77,16 @@ $("access-form").addEventListener("submit",async e=>{
  email=v;$("access-card").classList.add("hidden");$("control-card").classList.remove("hidden");
  await loadPlayers();
 });
+function makePreviewBalls(){
+ const w=canvas.clientWidth,c=w/2,R=w*.405,n=players.length;
+ const radius=Math.max(3.2,Math.min(8,w*.012,Math.sqrt((w*w*.35)/(Math.max(n,1)*Math.PI))*.34));
+ balls=players.map((p,i)=>{
+  const a=-Math.PI/2+(TAU*i/Math.max(n,1));
+  const ring=n===1?0:R*.43;
+  return {name:p.username,color:palette[i%palette.length],x:c+Math.cos(a)*ring,y:c+Math.sin(a)*ring,vx:0,vy:0,r:radius,alive:true,drop:1};
+ });
+ draw();
+}
 function makeBalls(){
  const w=canvas.clientWidth,c=w/2,R=w*.405,n=players.length;
  const radius=Math.max(3.2,Math.min(8,w*.012,Math.sqrt((w*w*.35)/(n*Math.PI))*.34));
