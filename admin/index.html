@@ -27,6 +27,18 @@ input{width:100%;background:#120c1c;border:1px solid #594071;border-radius:11px;
 <section class="panel" id="dashboard">
 <div class="toolbar"><div><h2>Joined members</h2><p class="muted">Newest signups appear first.</p></div><div><button class="secondary" id="refresh">Refresh</button> <button class="secondary" id="logout">Sign out</button></div></div>
 <div class="stats"><div class="stat"><strong id="total">0</strong><span>Total signups</span></div><div class="stat"><strong id="verified">0</strong><span>Verified</span></div><div class="stat"><strong id="waiting">0</strong><span>Not verified</span></div></div>
+<div class="panel" style="margin:18px 0;background:#140e20">
+<h3>Verify an Instagram code</h3>
+<p class="muted">Paste the username and the 8-character code they sent you in Instagram DM.</p>
+<form id="verify-form">
+<label for="verify-username">Instagram username</label>
+<input id="verify-username" autocomplete="off" placeholder="@username" required>
+<label for="verify-code">Verification code</label>
+<input id="verify-code" autocomplete="off" maxlength="8" placeholder="8-character code" required>
+<button id="verify-button" type="submit">Check code &amp; verify</button>
+</form>
+<p id="verify-status" class="status" role="status" aria-live="polite"></p>
+</div>
 <input id="search" type="search" placeholder="Search Instagram username…" aria-label="Search usernames">
 <div class="table-wrap"><table><thead><tr><th>Instagram username</th><th>Joined</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody></table></div>
 <p id="dash-status" class="status" role="status" aria-live="polite"></p>
@@ -75,6 +87,27 @@ document.getElementById("login-form").addEventListener("submit",async e=>{
  if(email!==ADMIN_EMAIL){say(loginStatus,"That email isn't authorized for this dashboard.","bad");return}
  adminEmailEntered=email;const button=document.getElementById("send");button.disabled=true;say(loginStatus,"Checking access and loading your list…");
  const ok=await load();if(ok){showLoggedIn(true)}else{showLoggedIn(false)}button.disabled=false;
+});
+document.getElementById("verify-form").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const username=document.getElementById("verify-username").value.trim().replace(/^@+/,"");
+ const code=document.getElementById("verify-code").value.trim().toUpperCase();
+ const button=document.getElementById("verify-button");
+ button.disabled=true;say(document.getElementById("verify-status"),"Checking code…");
+ try{
+  const response=await fetch(URL+"/functions/v1/verify-contest-code",{
+   method:"POST",headers:{apikey:KEY,"Content-Type":"application/json","x-admin-email":adminEmailEntered},
+   body:JSON.stringify({username,code})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){say(document.getElementById("verify-status"),result.error||"Could not verify that code.","bad");}
+  else{
+   say(document.getElementById("verify-status"),result.message||"Verified!","good");
+   document.getElementById("verify-code").value="";
+   await load();
+  }
+ }catch(error){say(document.getElementById("verify-status"),"Couldn't reach the verification server. Try again.","bad");}
+ button.disabled=false;
 });
 document.getElementById("refresh").addEventListener("click",load);
 document.getElementById("logout").addEventListener("click",()=>{adminEmailEntered="";document.getElementById("email").value="";showLoggedIn(false);say(loginStatus,"Signed out.")});
