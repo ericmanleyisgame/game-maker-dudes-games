@@ -14,7 +14,7 @@ main{width:min(760px,calc(100% - 28px));margin:22px auto 64px}.panel{background:
 h2{margin:0 0 8px;font-size:1.3rem}.sub{color:var(--muted);font-size:.92rem;line-height:1.5;margin:0 0 20px}
 form{display:flex;gap:10px;flex-wrap:wrap}input{flex:1;min-width:190px;background:#120c1c;border:1px solid #594071;border-radius:12px;padding:14px 15px;color:var(--ink);font:inherit;outline:none}input:focus{border-color:var(--purple);box-shadow:0 0 0 3px #b58aff22}
 button{border:0;border-radius:12px;padding:14px 20px;background:linear-gradient(100deg,#c5a3ff,#9866e7);color:#180e25;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
-.note{color:#9e8bb7;font-size:.8rem;line-height:1.5;margin:13px 0 0}.status{min-height:24px;margin:12px 0 0;font-size:.9rem}.status.good{color:#b9f2cc}.status.bad{color:#ffb7c2}
+.note{color:#9e8bb7;font-size:.8rem;line-height:1.5;margin:13px 0 0}.status{min-height:24px;margin:12px 0 0;font-size:.9rem}.status.good{color:#b9f2cc}.status.bad{color:#ffb7c2}.verification{display:none;margin-top:14px;padding:14px;border:1px solid #7552a0;border-radius:12px;background:#140e20;line-height:1.6}.verification.visible{display:block}.verification-code{display:inline-block;margin:8px 0;padding:9px 13px;border-radius:9px;background:#2b1b40;color:#e5d4ff;font-size:1.25rem;font-weight:800;letter-spacing:.14em;font-family:ui-monospace,monospace}
 .roster-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.count{color:#d9c7ff;font-variant-numeric:tabular-nums;background:#56378366;border:1px solid #7552a0;border-radius:999px;padding:6px 10px;font-size:.85rem}
 ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;max-height:420px;overflow:auto}.player{background:#140e20;border:1px solid #342443;border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}.empty{color:var(--muted);padding:14px 0}.foot{text-align:center;color:#8e7da5;font-size:.8rem;padding:6px 0 24px}
 </style>
@@ -27,6 +27,7 @@ ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(
 <form id="join-form"><input id="username" name="username" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@yourusername" aria-label="Instagram username" required><button id="join-button" type="submit">Join competition</button></form>
 <p class="note">Your username will appear in the public signup list. Only enter a username you are comfortable displaying publicly. Signing up does not automatically verify that you follow the Instagram account.</p>
 <p id="status" class="status" role="status" aria-live="polite"></p>
+<p id="verification" class="verification" aria-live="polite"></p>
 </section>
 <section class="panel">
 <div class="roster-head"><div><h2>People who joined</h2><p class="sub" style="margin:5px 0 0">Signups stay open.</p></div><span id="count" class="count">0 joined</span></div>
@@ -37,14 +38,14 @@ ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(
 <script>
 const SUPABASE_URL = "https://asiyltpfjvtwywrbxrge.supabase.co";
 const SUPABASE_KEY = "sb_publishable_592XZcMAYP6sI2D-TDEp3g_G1FzXpQn";
-const endpoint = SUPABASE_URL + "/rest/v1/contest_signups";
-const headers = {"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"};
-const form=document.getElementById("join-form"), field=document.getElementById("username"), button=document.getElementById("join-button"), statusEl=document.getElementById("status"), roster=document.getElementById("roster"), count=document.getElementById("count");
+const signupFunction = SUPABASE_URL + "/functions/v1/create-verification-code";
+const headers = {"apikey":SUPABASE_KEY,"Content-Type":"application/json"};
+const form=document.getElementById("join-form"), field=document.getElementById("username"), button=document.getElementById("join-button"), statusEl=document.getElementById("status"), verification=document.getElementById("verification"), roster=document.getElementById("roster"), count=document.getElementById("count");
 function say(message,type=""){statusEl.textContent=message;statusEl.className="status "+type}
-function cleanName(value){return value.trim().replace(/^@+/,"")}
+function cleanName(value){return value.trim().replace(/^@+/,"").toLowerCase()}
 async function loadRoster(){
  try{
-  const response=await fetch(endpoint+"?select=username,created_at&order=created_at.desc&limit=1000",{headers});
+  const response=await fetch(SUPABASE_URL+"/rest/v1/contest_signups?select=username,created_at&order=created_at.desc&limit=1000",{headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY}});
   if(!response.ok) throw new Error("Could not load the signup list.");
   const people=await response.json();roster.replaceChildren();count.textContent=people.length+(people.length===1?" joined":" joined");
   if(!people.length){const li=document.createElement("li");li.className="empty";li.textContent="You're the first one here. Be the first to join!";roster.append(li);return}
@@ -53,14 +54,25 @@ async function loadRoster(){
 }
 form.addEventListener("submit",async event=>{
  event.preventDefault();const username=cleanName(field.value);
- if(!/^[A-Za-z0-9._]{1,30}$/.test(username)){say("Please enter a valid Instagram username (letters, numbers, periods, or underscores).","bad");return}
+ verification.className="verification";verification.textContent="";
+ if(!/^[a-z0-9._]{1,30}$/.test(username)){say("Please enter a valid Instagram username (letters, numbers, periods, or underscores).","bad");return}
  button.disabled=true;button.textContent="Joining…";say("");
  try{
-  const response=await fetch(endpoint,{method:"POST",headers:{...headers,"Prefer":"return=minimal"},body:JSON.stringify({username})});
-  if(response.status===201){say("You're on the list! 💜","good");field.value="";await loadRoster()}
-  else if(response.status===409){say("That username has already joined.","bad")}
-  else{const detail=await response.text();if(response.status===400&&detail.toLowerCase().includes("duplicate"))say("That username has already joined.","bad");else throw new Error("Signup didn't go through. Please try again in a moment.")}
- }catch(error){say(error.message||"Something went wrong. Please try again.","bad")}
+  const response=await fetch(signupFunction,{method:"POST",headers,body:JSON.stringify({username})});
+  const result=await response.json().catch(()=>({}));
+  if(response.ok&&result.ok){
+   say("You're on the signup list! 💜","good");field.value="";
+   verification.replaceChildren();
+   const intro=document.createElement("span");intro.textContent="Your one-time verification code:";
+   const code=document.createElement("div");code.className="verification-code";code.textContent=result.code;
+   const instruction=document.createElement("div");instruction.textContent="Send this code in a DM to the game Instagram account. It expires in 15 minutes.";
+   const note=document.createElement("div");note.className="note";note.textContent="DM checking is not connected yet, so this code is ready for the next setup step but does not mark you as verified automatically.";
+   verification.append(intro,code,instruction,note);verification.className="verification visible";
+   await loadRoster();
+  }else{
+   say(result.error||"Signup didn't go through. Please try again in a moment.","bad");
+  }
+ }catch(error){say("Couldn't reach the signup service. Please try again in a moment.","bad")}
  finally{button.disabled=false;button.textContent="Join competition"}
 });
 loadRoster();setInterval(loadRoster,15000);
