@@ -53,7 +53,7 @@ const palette=["#bd8cff","#ff8cce","#79d7ff","#ffd36e","#9ff0b5","#ff9b80","#b7a
 const TAU=Math.PI*2,gapSize=.55;
 let email="",players=[],balls=[],running=false,angle=0,spin=.72,reverseAt=0,last=0,elapsed=0,raf=0,recorder=null,recordedChunks=[],videoUrl="",matchFinished=false,winnerName="",recordingStopTimer=null;
 function say(id,msg){$(id).textContent=msg}
-function resize(){const dpr=Math.min(devicePixelRatio||1,2),r=canvas.getBoundingClientRect();if(!r.width)return;canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.width*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+function resize(){const dpr=Math.min(devicePixelRatio||1,1.5),r=canvas.getBoundingClientRect();if(!r.width)return;canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.width*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
 new ResizeObserver(resize).observe(canvas);
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function renderRoster(){ $("count").textContent=players.length;$("roster").innerHTML=players.length?players.map((p,i)=>'<div class="player"><span>@'+escapeHtml(p.username)+'</span><span>'+ (i+1) +'</span></div>').join(""):'<div class="empty">No verified contestants yet.</div>'}
@@ -109,12 +109,12 @@ function startRecording(){
 function stopRecording(){if(recorder&&recorder.state!=="inactive")recorder.stop()}
 function start(){
  if(running||players.length<2)return;
- if(recordingStopTimer){clearTimeout(recordingStopTimer);recordingStopTimer=null;}
+ if(recordingStopTimer){cancelAnimationFrame(recordingStopTimer);recordingStopTimer=null;}
  winnerName="";makeBalls();running=true;elapsed=0;angle=0;spin=.72;reverseAt=6;last=0;matchFinished=false;
  $("winner").style.display="none";$("start").disabled=true;$("reset").disabled=false;say("game-status","Players dropping in…");say("control-status","Match started.");startRecording();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)
 }
 function reset(){
- if(recordingStopTimer){clearTimeout(recordingStopTimer);recordingStopTimer=null;}
+ if(recordingStopTimer){cancelAnimationFrame(recordingStopTimer);recordingStopTimer=null;}
  running=false;cancelAnimationFrame(raf);stopRecording();winnerName="";balls=[];elapsed=0;angle=0;spin=.72;matchFinished=false;
  $("clock").textContent="00:00";$("remaining").textContent="0 players remaining";$("game-status").textContent="Ready for next match";$("start").disabled=players.length<2;$("reset").disabled=players.length===0;$("winner").style.display="none";draw()
 }
@@ -123,8 +123,14 @@ function finish(alive){
  if(alive.length){winnerName="@"+alive[0].name;$("winner-name").textContent=winnerName;$("winner").style.display="block";say("game-status","We have a winner!");say("control-status","Winner: "+winnerName);draw()}
  else{say("game-status","No survivors");say("control-status","Nobody remained in the arena.")}
  if(recordingStopTimer)clearTimeout(recordingStopTimer);
- // Keep recording the winner screen for five seconds so the ending is visible in the saved clip.
- recordingStopTimer=setTimeout(()=>{recordingStopTimer=null;stopRecording();},5000);
+ // Keep repainting the winner screen so the canvas recorder captures the ending reliably.
+ const holdStarted=performance.now();
+ const holdWinnerFrame=()=>{
+  draw();
+  if(performance.now()-holdStarted<7000){recordingStopTimer=requestAnimationFrame(holdWinnerFrame);}
+  else{recordingStopTimer=null;stopRecording();}
+ };
+ recordingStopTimer=requestAnimationFrame(holdWinnerFrame);
 }
 function loop(t){
  if(!running)return;const dt=Math.min((t-last)/1000||0,.032);last=t;elapsed+=dt;
