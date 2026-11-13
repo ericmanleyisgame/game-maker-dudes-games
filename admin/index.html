@@ -20,8 +20,8 @@ input{width:100%;background:#120c1c;border:1px solid #594071;border-radius:11px;
 <header><div class="mark">◯</div><h1>Game Maker Dude — Admin</h1><p>Private contestant dashboard</p></header>
 <main>
 <section class="panel" id="login">
-<h2>Admin sign in</h2><p class="muted">Enter your admin email and we'll send you a one-time sign-in link. No password needed.</p>
-<form id="login-form"><input id="email" type="email" autocomplete="email" placeholder="Admin email" required><button id="send" type="submit">Send sign-in link</button></form>
+<h2>Admin sign in</h2><p class="muted">Enter your admin Gmail to open the contestant list. Nothing will be emailed to you.</p>
+<form id="login-form"><input id="email" type="email" autocomplete="email" placeholder="Admin email" required><button id="send" type="submit">Open dashboard</button></form>
 <p id="login-status" class="status" role="status" aria-live="polite"></p>
 </section>
 <section class="panel" id="dashboard">
@@ -39,15 +39,15 @@ const URL="https://asiyltpfjvtwywrbxrge.supabase.co";
 const KEY="sb_publishable_592XZcMAYP6sI2D-TDEp3g_G1FzXpQn";
 const ADMIN_EMAIL="bigballseo@gmail.com";
 const REDIRECT="https://ericmanleyisgame.github.io/game-maker-dudes-games/admin/";
-const api=supabase.createClient(URL,KEY);
+
 const login=document.getElementById("login"),dashboard=document.getElementById("dashboard"),loginStatus=document.getElementById("login-status"),dashStatus=document.getElementById("dash-status");
 let signups=[];
 function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
 function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
-async function load(session){
+async function load(){
  say(dashStatus,"Loading members…");
- if(!session){showLoggedIn(false);return}
- const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,Authorization:"Bearer "+session.access_token}});
+ const email=sessionStorage.getItem("adminEmail")||"";
+ const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,"x-admin-email":email}});
  const result=await response.json().catch(()=>({}));
  if(!response.ok){say(dashStatus,result.error||"Couldn't load members.","bad");return}
  signups=result.signups||[];
@@ -71,15 +71,13 @@ function render(){
 document.getElementById("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const email=document.getElementById("email").value.trim().toLowerCase();
  if(email!==ADMIN_EMAIL){say(loginStatus,"That email isn't authorized for this dashboard.","bad");return}
- const btn=document.getElementById("send");btn.disabled=true;say(loginStatus,"Sending your sign-in link…");
- const {error}=await api.auth.signInWithOtp({email,options:{emailRedirectTo:REDIRECT,shouldCreateUser:true}});
- say(loginStatus,error?error.message:"Check your inbox for the sign-in link. Open it on this device to access the dashboard.",error?"bad":"good");btn.disabled=false;
+ sessionStorage.setItem("adminEmail",email);showLoggedIn(true);await load();
 });
-document.getElementById("refresh").addEventListener("click",async()=>{const {data:{session}}=await api.auth.getSession();await load(session)});
-document.getElementById("logout").addEventListener("click",async()=>{await api.auth.signOut();showLoggedIn(false);say(loginStatus,"Signed out.")});
+document.getElementById("refresh").addEventListener("click",load);
+document.getElementById("logout").addEventListener("click",()=>{sessionStorage.removeItem("adminEmail");showLoggedIn(false);say(loginStatus,"Signed out.")});
 document.getElementById("search").addEventListener("input",render);
-api.auth.onAuthStateChange((_event,session)=>{if(session){showLoggedIn(true);void load(session)}else showLoggedIn(false)});
-(async()=>{const {data:{session}}=await api.auth.getSession();if(session){showLoggedIn(true);await load(session)}else showLoggedIn(false)})();
+const savedEmail=sessionStorage.getItem("adminEmail");
+if(savedEmail===ADMIN_EMAIL){document.getElementById("email").value=savedEmail;showLoggedIn(true);void load()}else showLoggedIn(false);
 </script>
 </body>
 </html>
