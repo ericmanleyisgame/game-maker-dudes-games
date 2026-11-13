@@ -44,7 +44,7 @@ const login=document.getElementById("login"),dashboard=document.getElementById("
 let signups=[];
 let adminEmailEntered="";
 function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
-function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
+function showLoggedIn(on){login.style.display="block";dashboard.style.display=on?"block":"none"}
 async function load(){
  say(dashStatus,"Loading members…");
  try{
