@@ -65,7 +65,7 @@ form.addEventListener("submit",async event=>{
    verification.replaceChildren();
    const intro=document.createElement("span");intro.textContent="Your one-time verification code:";
    const code=document.createElement("div");code.className="verification-code";code.textContent=result.code;
-   const instruction=document.createElement("div");instruction.textContent="Send this code in a DM to the game Instagram account. It expires in 15 minutes.";
+   const instruction=document.createElement("div");instruction.textContent="Send this code in a DM to @gamemakerdude on Instagram. It expires in 15 minutes.";
    const note=document.createElement("div");note.className="note";note.textContent="DM checking is not connected yet, so this code is ready for the next setup step but does not mark you as verified automatically.";
    verification.append(intro,code,instruction,note);verification.className="verification visible";
    await loadRoster();
