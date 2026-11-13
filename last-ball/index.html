@@ -50,7 +50,7 @@ const SUPABASE_KEY="sb_publishable_592XZcMAYP6sI2D-TDEp3g_G1FzXpQn";
 const ADMIN_EMAIL="bigballseo@gmail.com";
 const $=id=>document.getElementById(id),canvas=$("arena"),ctx=canvas.getContext("2d");
 const palette=["#bd8cff","#ff8cce","#79d7ff","#ffd36e","#9ff0b5","#ff9b80","#b7a4ff","#f49bff","#8de3d0","#f3a9a9","#a9baff","#d4ef82"];
-const TAU=Math.PI*2,gapSize=.34;
+const TAU=Math.PI*2,gapSize=.55;
 let email="",players=[],balls=[],running=false,angle=0,spin=.72,reverseAt=0,last=0,elapsed=0,raf=0,recorder=null,recordedChunks=[],videoUrl="",matchFinished=false;
 function say(id,msg){$(id).textContent=msg}
 function resize(){const dpr=Math.min(devicePixelRatio||1,2),r=canvas.getBoundingClientRect();if(!r.width)return;canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.width*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
@@ -80,7 +80,7 @@ $("access-form").addEventListener("submit",async e=>{
 function makeBalls(){
  const w=canvas.clientWidth,c=w/2,R=w*.405,n=players.length;
  const radius=Math.max(3.2,Math.min(8,w*.012,Math.sqrt((w*w*.35)/(n*Math.PI))*.34));
- balls=players.map((p,i)=>({name:p.username,color:palette[i%palette.length],x:c+(Math.random()-.5)*R*.65,y:-radius-Math.random()*w*.35,vx:(Math.random()-.5)*90,vy:65+Math.random()*90,r:radius,alive:true,drop:Math.random()*.8}));
+ balls=players.map((p,i)=>({name:p.username,color:palette[i%palette.length],x:c+(Math.random()-.5)*R*.65,y:-radius-Math.random()*w*.35,vx:(Math.random()-.5)*120,vy:90+Math.random()*110,r:radius,alive:true,drop:Math.random()*.8}));
 }
 function startRecording(){
  recordedChunks=[];if(videoUrl){URL.revokeObjectURL(videoUrl);videoUrl="";}
@@ -116,7 +116,7 @@ function loop(t){
  if(elapsed>reverseAt){spin*=-1;reverseAt=elapsed+4+Math.random()*4}angle+=spin*dt;
  const w=canvas.clientWidth,c=w/2,R=w*.405;
  for(const b of balls){if(!b.alive)continue;b.drop=Math.min(1,b.drop+dt/1.65);if(b.drop<1){b.y+=(c-b.y)*Math.min(1,dt*2.5);continue}
-  b.vy+=35*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+  b.vy+=45*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
   const dx=b.x-c,dy=b.y-c,dist=Math.hypot(dx,dy),a=Math.atan2(dy,dx),gapAngle=angle-Math.PI/2;
   const da=Math.atan2(Math.sin(a-gapAngle),Math.cos(a-gapAngle));
   if(dist+b.r>R){
