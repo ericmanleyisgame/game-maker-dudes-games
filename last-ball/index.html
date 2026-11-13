@@ -31,7 +31,7 @@ input{width:100%;background:#0d0915;border:1px solid #58416f;border-radius:10px;
   <p class="status" id="access-status" role="status" aria-live="polite"></p>
  </section>
  <section class="panel card hidden" id="control-card">
-  <h2>Match controls</h2><p class="muted">Only contestants marked Verified in your signup list are included.</p>
+  <h2>Match controls</h2><p class="muted">Verified contestants plus 3 automatic AI players are included in each match.</p>
   <button class="secondary full" id="load">Load verified contestants</button>
   <div class="stats"><div class="stat"><strong id="count">0</strong><span>Eligible</span></div><div class="stat"><strong id="left">0</strong><span>In arena</span></div><div class="stat"><strong id="out">0</strong><span>Eliminated</span></div></div>
   <div class="row"><button class="primary" id="start" disabled>Start game</button><button class="secondary" id="reset" disabled>Reset</button></div>
@@ -40,7 +40,7 @@ input{width:100%;background:#0d0915;border:1px solid #58416f;border-radius:10px;
   <p class="status" id="control-status" role="status" aria-live="polite"></p>
   <p class="note">The video is recorded in your browser while the match runs. It saves as a WebM video file when you press Save match video.</p>
  </section>
- <section class="panel card roster-card hidden" id="roster-card"><h2>Verified contestants</h2><p class="muted">These are the players loaded into the next match.</p><div class="roster" id="roster"><div class="empty">Load contestants to begin.</div></div></section>
+ <section class="panel card roster-card hidden" id="roster-card"><h2>Verified contestants</h2><p class="muted">Verified contestants and the 3 AI players loaded into the next match.</p><div class="roster" id="roster"><div class="empty">Load contestants to begin.</div></div></section>
 </aside>
 </main>
 <script>
@@ -64,7 +64,11 @@ async function loadPlayers(){
   const res=await fetch(SUPABASE_URL+"/functions/v1/admin-signups",{headers:{apikey:SUPABASE_KEY,"x-admin-email":email}});
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||"Could not load the signup list.");
-  players=(data.signups||[]).filter(x=>x.verified===true).map(x=>({username:String(x.username||"").replace(/^@/,"")})).filter(x=>x.username);
+  const verified=(data.signups||[]).filter(x=>x.verified===true).map(x=>({username:String(x.username||"").replace(/^@/,"")})).filter(x=>x.username);
+  const botNames=["LastBallBot1","LastBallBot2","LastBallBot3"];
+  const existing=new Set(verified.map(x=>x.username.toLowerCase()));
+  const bots=botNames.filter(name=>!existing.has(name.toLowerCase())).map(username=>({username,isAI:true}));
+  players=[...verified,...bots];
   renderRoster();if(!running)makePreviewBalls();$("roster-card").classList.remove("hidden");
   $("start").disabled=players.length<2;$("reset").disabled=players.length===0;
   say("control-status",players.length?players.length+" verified contestants loaded.":"No verified contestants yet. Verify some signups in your admin dashboard first.");
