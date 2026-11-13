@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0712">
+<title>Last Ball — Elimination Arena</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0712;--panel:#151020;--panel2:#1d152b;--purple:#a978ff;--pink:#d78aff;--muted:#a99bbd;--line:#342347;--white:#f7f1ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,#34204b 0%,#110b1a 48%,var(--bg) 80%);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:28px 20px 16px;text-align:center}
+.brand{display:inline-flex;align-items:center;gap:9px;color:#d7baff;font-size:.78rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+.brand-mark{width:10px;height:10px;border-radius:50%;background:var(--purple);box-shadow:0 0 18px var(--purple)}
+h1{font-size:clamp(2rem,6vw,3.5rem);letter-spacing:-.065em;margin:10px 0 5px;line-height:1}
+header p{color:var(--muted);margin:0;font-size:.96rem}
+main{width:min(1120px,calc(100% - 28px));margin:24px auto 60px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.8fr);gap:18px;align-items:start}
+.panel{background:linear-gradient(150deg,#21172fdd,#120d1c);border:1px solid var(--line);border-radius:22px;box-shadow:0 22px 70px #0005}
+.arena-panel{padding:16px}
+.arena-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:2px 3px 14px}
+.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#bda6d9;font-weight:800}
+.status{font-size:.78rem;color:#d7c6ed;background:#38264d;padding:7px 10px;border-radius:999px}
+canvas{display:block;width:100%;aspect-ratio:1/1;max-height:660px;border-radius:16px;background:radial-gradient(circle,#1b1229,#0b0811 72%);border:1px solid #39264d}
+.arena-foot{display:flex;justify-content:space-between;gap:12px;padding:13px 4px 1px;color:var(--muted);font-size:.82rem}
+.side{display:grid;gap:14px}
+.card{padding:19px}
+h2{font-size:1.08rem;margin:0 0 7px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:.85rem;line-height:1.5;margin:0 0 15px}
+label{display:block;color:#d6c8e6;font-size:.8rem;font-weight:700;margin:0 0 7px}
+.input-row{display:flex;gap:8px}
+input{min-width:0;flex:1;background:#0d0915;border:1px solid #49345f;border-radius:11px;color:white;padding:12px 12px;font:inherit;outline:none}
+input:focus{border-color:var(--purple);box-shadow:0 0 0 3px #a978ff22}
+button{border:0;border-radius:11px;padding:11px 14px;font:inherit;font-weight:800;cursor:pointer;transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.primary{background:linear-gradient(110deg,#c49aff,#925de0);color:#160d22}
+.secondary{background:#30213f;color:#e8d9fa;border:1px solid #4a3561}
+.full{width:100%;margin-top:10px}
+.entry-count{display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 9px}
+.big-number{font-size:1.65rem;font-weight:850;letter-spacing:-.05em}
+.small-muted{font-size:.76rem;color:var(--muted)}
+.roster{max-height:220px;overflow:auto;display:grid;gap:7px}
+.player{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:10px;background:#ffffff08;border:1px solid #ffffff0b;font-size:.83rem}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 12px currentColor}
+.player-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:#887a99;font-size:.82rem;padding:12px 4px}
+.note{font-size:.73rem;color:#8f819e;line-height:1.45;margin:13px 0 0}
+.winner{display:none;text-align:center;padding:13px;border:1px solid #7857a2;background:#2a1c3b;border-radius:14px;margin-top:12px}
+.winner strong{display:block;font-size:1.2rem;color:#e1c8ff;margin-top:4px}
+.controls{display:flex;gap:8px}
+.controls button{flex:1}
+footer{text-align:center;color:#796b88;font-size:.78rem;padding:0 18px 28px}
+@media(max-width:780px){main{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}.roster-card{grid-column:1/-1}.roster{max-height:170px}}
+@media(max-width:480px){main{width:calc(100% - 18px);margin-top:14px}.side{grid-template-columns:1fr}.arena-panel{padding:10px}.arena-foot{font-size:.72rem}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><span class="brand-mark"></span> Elimination arena</div>
+ <h1>LAST BALL</h1>
+ <p>One opening. One survivor. Will your username make it?</p>
+</header>
+<main>
+ <section class="panel arena-panel">
+  <div class="arena-top"><span class="eyebrow">Live arena</span><span class="status" id="status">Waiting for players</span></div>
+  <canvas id="game" aria-label="Circular elimination arena simulation"></canvas>
+  <div class="arena-foot"><span id="timer">00:00</span><span id="remaining">0 players remaining</span></div>
+ </section>
+ <aside class="side">
+  <section class="panel card">
+   <h2>Enter the arena</h2>
+   <p class="sub">Just your Instagram username. No password or profile connection needed.</p>
+   <form id="join-form">
+    <label for="username">Instagram username</label>
+    <div class="input-row"><input id="username" maxlength="24" placeholder="@yourusername" autocomplete="off" required><button class="primary" type="submit">Join</button></div>
+   </form>
+   <div class="entry-count"><span class="small-muted">Players entered</span><span class="big-number" id="entry-count">0</span></div>
+   <div class="controls"><button class="primary" id="start">Start demo</button><button class="secondary" id="reset">Reset</button></div>
+   <div class="winner" id="winner">🏆 Winner<strong id="winner-name"></strong></div>
+   <p class="note">Prototype: entries are saved only in this browser for now. A shared online player list will need a database connection before public competitions.</p>
+  </section>
+  <section class="panel card roster-card">
+   <h2>Contestants</h2>
+   <p class="sub">Usernames float above each ball in the arena.</p>
+   <div class="roster" id="roster"><div class="empty">No contestants yet. Add a username to begin.</div></div>
+  </section>
+ </aside>
+</main>
+<footer>Last Ball · A 2D elimination game prototype</footer>
+<script>
+(() => {
+ const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+ const $=id=>document.getElementById(id);
+ const colors=['#bd8cff','#ff8cce','#79d7ff','#ffd36e','#9ff0b5','#ff9b80','#b7a4ff','#f49bff','#8de3d0','#f3a9a9','#a9baff','#d4ef82'];
+ let entrants=[],balls=[],running=false,angle=0,spin=.72,reverseAt=0,last=0,elapsed=0,raf=0,roundStarted=false;
+ const TAU=Math.PI*2, gapSize=.34;
+ function resize(){const dpr=Math.min(devicePixelRatio||1,2),r=canvas.getBoundingClientRect();canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.width*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+ new ResizeObserver(resize).observe(canvas);
+ function addUser(name){name=name.trim().replace(/^@/,'').replace(/[^a-zA-Z0-9._]/g,'').slice(0,24);if(!name)return false;if(entrants.some(p=>p.toLowerCase()===name.toLowerCase()))return false;entrants.push(name);renderRoster();return true}
+ function renderRoster(){$('entry-count').textContent=entrants.length;$('roster').innerHTML=entrants.length?entrants.map((n,i)=>'<div class="player"><span class="dot" style="background:'+colors[i%colors.length]+';color:'+colors[i%colors.length]+'"></span><span class="player-name">@'+escapeHtml(n)+'</span></div>').join(''):'<div class="empty">No contestants yet. Add a username to begin.</div>'}
+ function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ $('join-form').addEventListener('submit',e=>{e.preventDefault();if(running){$('status').textContent='Round already started';return}const v=$('username').value;if(addUser(v)){$('username').value='';$('status').textContent='Entry added'}else $('status').textContent='Username already entered or invalid'});
+ function seedDemo(){if(!entrants.length)addUser('you');['moonlight','ghostkid','purpleheart','starboy','dreamer','lilcloud','nightowl','lostangel','violetx','echo.wav','softchaos','orbitzz'].forEach(addUser)}
+ function makeBalls(){const w=canvas.clientWidth,c=w/2,R=w*.405;balls=entrants.map((name,i)=>({name,color:colors[i%colors.length],x:c+(Math.random()-.5)*R*.7,y:-30-Math.random()*w*.35,vx:(Math.random()-.5)*90,vy:80+Math.random()*80,r:Math.max(5,Math.min(9,w*.012)),alive:true,drop:Math.random()*.8}));return {c,R}}
+ function start(){if(running)return;if(!entrants.length)seedDemo();makeBalls();running=true;roundStarted=true;elapsed=0;angle=0;spin=.72;reverseAt=6;last=0;$('winner').style.display='none';$('status').textContent='Players dropping in…';$('start').disabled=true;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+ function reset(){running=false;cancelAnimationFrame(raf);balls=[];elapsed=0;angle=0;spin=.72;$('timer').textContent='00:00';$('status').textContent='Waiting for players';$('remaining').textContent='0 players remaining';$('start').disabled=false;$('winner').style.display='none';draw()}
+ function loop(t){if(!running)return;const dt=Math.min((t-last)/1000||0,.032);last=t;elapsed+=dt;
+  if(elapsed>reverseAt){spin*=-1;reverseAt=elapsed+4+Math.random()*4}
+  angle+=spin*dt;
+  const w=canvas.clientWidth,c=w/2,R=w*.405;
+  const dropTime=1.65;
+  for(const b of balls){if(!b.alive)continue;b.drop=Math.min(1,b.drop+dt/dropTime);if(b.drop<1){b.y+=(c-b.y)*Math.min(1,dt*2.5);continue}
+   b.vy+=35*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+   const dx=b.x-c,dy=b.y-c,dist=Math.hypot(dx,dy),a=Math.atan2(dy,dx),gapAngle=angle+Math.PI/2;
+   let da=Math.atan2(Math.sin(a-gapAngle),Math.cos(a-gapAngle));
+   if(dist+b.r>R){
+    if(Math.abs(da)<gapSize/2+.015 && dist>R-b.r*.25){b.alive=false;continue}
+    const nx=dx/(dist||1),ny=dy/(dist||1),wallVx=-ny*spin*R*.55,wallVy=nx*spin*R*.55;
+    const rvx=b.vx-wallVx,rvy=b.vy-wallVy,radial=rvx*nx+rvy*ny;
+    b.x=c+nx*(R-b.r);b.y=c+ny*(R-b.r);
+    if(radial>0){b.vx-=1.65*radial*nx;b.vy-=1.65*radial*ny}
+    b.vx+=wallVx*.025;b.vy+=wallVy*.025;
+   }
+  }
+  const alive=balls.filter(b=>b.alive);$('remaining').textContent=alive.length+' players remaining';$('timer').textContent=fmt(elapsed);
+  if(elapsed<2.2)$('status').textContent='Players dropping in…';else $('status').textContent='Arena spinning';
+  draw();
+  if(alive.length<=1&&elapsed>2.2){running=false;$('start').disabled=false;if(alive.length){$('winner-name').textContent='@'+alive[0].name;$('winner').style.display='block';$('status').textContent='We have a winner!'}else $('status').textContent='Everyone escaped!';return}
+  raf=requestAnimationFrame(loop)
+ }
+ function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0')}
+ function draw(){const w=canvas.clientWidth||500,c=w/2,R=w*.405;ctx.clearRect(0,0,w,w);
+  const glow=ctx.createRadialGradient(c,c,R*.65,c,c,R*1.18);glow.addColorStop(0,'#21143300');glow.addColorStop(1,'#a56bff12');ctx.fillStyle=glow;ctx.fillRect(0,0,w,w);
+  ctx.save();ctx.translate(c,c);ctx.rotate(angle);
+  ctx.beginPath();ctx.arc(0,0,R,-Math.PI/2+gapSize/2,Math.PI*1.5-gapSize/2);ctx.strokeStyle='#a978ff';ctx.lineWidth=Math.max(5,w*.016);ctx.lineCap='round';ctx.shadowColor='#a978ff';ctx.shadowBlur=22;ctx.stroke();ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(0,0,R-7,-Math.PI/2+gapSize/2,Math.PI*1.5-gapSize/2);ctx.strokeStyle='#e0c7ff33';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  ctx.fillStyle='#a98ac7';ctx.font='700 '+Math.max(9,w*.018)+'px system-ui';ctx.textAlign='center';ctx.fillText('OPENING',c,w*.075);
+  for(const b of balls){if(!b.alive)continue;ctx.globalAlpha=b.drop<1?b.drop:1;ctx.beginPath();ctx.arc(b.x,b.y,b.r+3,0,TAU);ctx.fillStyle=b.color+'28';ctx.fill();ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fillStyle=b.color;ctx.shadowColor=b.color;ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font='600 '+Math.max(8,Math.min(11,w*.021))+'px system-ui';ctx.textAlign='center';ctx.fillText('@'+b.name.length>12?'@'+b.name.slice(0,10)+'…':'@'+b.name,b.x,b.y-b.r-7);ctx.globalAlpha=1}
+  if(!balls.length){ctx.fillStyle='#877695';ctx.textAlign='center';ctx.font='600 13px system-ui';ctx.fillText('Your arena is waiting',c,c);ctx.font='11px system-ui';ctx.fillText('Add a username and start a demo',c,c+21)}
+ }
+ $('start').addEventListener('click',start);$('reset').addEventListener('click',reset);
+ resize();renderRoster();
+})();
+</script>
+</body>
+</html>
