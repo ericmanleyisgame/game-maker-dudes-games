@@ -50,14 +50,14 @@ async function load(){
  try{
   const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,"x-admin-email":adminEmailEntered}});
   const result=await response.json().catch(()=>({}));
-  if(!response.ok){say(dashStatus,result.error||"Couldn't load members.","bad");return}
+  if(!response.ok){const message=result.error||"Couldn't load members.";say(dashStatus,message,"bad");say(loginStatus,message,"bad");return false}
   signups=result.signups||[];
   document.getElementById("total").textContent=signups.length;
   const verified=signups.filter(x=>x.verified).length;
   document.getElementById("verified").textContent=verified;
   document.getElementById("waiting").textContent=signups.length-verified;
-  render();say(dashStatus,"List is up to date.","good");
- }catch(error){say(dashStatus,"Couldn't reach the signup server. Check your connection and press Refresh.","bad")}
+  render();say(dashStatus,"List is up to date.","good");return true;
+ }catch(error){const message="Couldn't reach the signup server. Check your connection and try again.";say(dashStatus,message,"bad");say(loginStatus,message,"bad");return false}
 }
 function render(){
  const term=document.getElementById("search").value.trim().replace(/^@/,"").toLowerCase();
@@ -73,7 +73,8 @@ function render(){
 document.getElementById("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const email=document.getElementById("email").value.trim().toLowerCase();
  if(email!==ADMIN_EMAIL){say(loginStatus,"That email isn't authorized for this dashboard.","bad");return}
- adminEmailEntered=email;showLoggedIn(true);await load();
+ adminEmailEntered=email;const button=document.getElementById("send");button.disabled=true;say(loginStatus,"Checking access and loading your list…");
+ const ok=await load();if(ok){showLoggedIn(true)}else{showLoggedIn(false)}button.disabled=false;
 });
 document.getElementById("refresh").addEventListener("click",load);
 document.getElementById("logout").addEventListener("click",()=>{adminEmailEntered="";document.getElementById("email").value="";showLoggedIn(false);say(loginStatus,"Signed out.")});
