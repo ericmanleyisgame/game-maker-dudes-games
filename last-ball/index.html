@@ -65,7 +65,7 @@ async function loadPlayers(){
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||"Could not load the signup list.");
   const verified=(data.signups||[]).filter(x=>x.verified===true).map(x=>({username:String(x.username||"").replace(/^@/,"")})).filter(x=>x.username);
-  const botNames=["LastBallBot1","LastBallBot2","LastBallBot3"];
+  const botNames=["jayy.vx","lilghost444","xavier.jpg"];
   const existing=new Set(verified.map(x=>x.username.toLowerCase()));
   const bots=botNames.filter(name=>!existing.has(name.toLowerCase())).map(username=>({username,isAI:true}));
   players=[...verified,...bots];
