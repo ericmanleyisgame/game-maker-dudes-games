@@ -41,21 +41,22 @@ const ADMIN_EMAIL="bigballseo@gmail.com";
 const REDIRECT="https://ericmanleyisgame.github.io/game-maker-dudes-games/admin/";
 
 const login=document.getElementById("login"),dashboard=document.getElementById("dashboard"),loginStatus=document.getElementById("login-status"),dashStatus=document.getElementById("dash-status");
-let signups=[];
+let signups=[];\nlet adminEmailEntered="";
 function say(el,msg,type=""){el.textContent=msg;el.className="status "+type}
 function showLoggedIn(on){login.style.display=on?"none":"block";dashboard.style.display=on?"block":"none"}
 async function load(){
  say(dashStatus,"Loading members…");
- const email=sessionStorage.getItem("adminEmail")||"";
- const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,"x-admin-email":email}});
- const result=await response.json().catch(()=>({}));
- if(!response.ok){say(dashStatus,result.error||"Couldn't load members.","bad");return}
- signups=result.signups||[];
- document.getElementById("total").textContent=signups.length;
- const verified=signups.filter(x=>x.verified).length;
- document.getElementById("verified").textContent=verified;
- document.getElementById("waiting").textContent=signups.length-verified;
- render();say(dashStatus,"List is up to date.","good");
+ try{
+  const response=await fetch(URL+"/functions/v1/admin-signups",{headers:{apikey:KEY,"x-admin-email":adminEmailEntered}});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){say(dashStatus,result.error||"Couldn't load members.","bad");return}
+  signups=result.signups||[];
+  document.getElementById("total").textContent=signups.length;
+  const verified=signups.filter(x=>x.verified).length;
+  document.getElementById("verified").textContent=verified;
+  document.getElementById("waiting").textContent=signups.length-verified;
+  render();say(dashStatus,"List is up to date.","good");
+ }catch(error){say(dashStatus,"Couldn't reach the signup server. Check your connection and press Refresh.","bad")}
 }
 function render(){
  const term=document.getElementById("search").value.trim().replace(/^@/,"").toLowerCase();
@@ -71,13 +72,12 @@ function render(){
 document.getElementById("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const email=document.getElementById("email").value.trim().toLowerCase();
  if(email!==ADMIN_EMAIL){say(loginStatus,"That email isn't authorized for this dashboard.","bad");return}
- sessionStorage.setItem("adminEmail",email);showLoggedIn(true);await load();
+ adminEmailEntered=email;showLoggedIn(true);await load();
 });
 document.getElementById("refresh").addEventListener("click",load);
-document.getElementById("logout").addEventListener("click",()=>{sessionStorage.removeItem("adminEmail");showLoggedIn(false);say(loginStatus,"Signed out.")});
+document.getElementById("logout").addEventListener("click",()=>{adminEmailEntered="";document.getElementById("email").value="";showLoggedIn(false);say(loginStatus,"Signed out.")});
 document.getElementById("search").addEventListener("input",render);
-const savedEmail=sessionStorage.getItem("adminEmail");
-if(savedEmail===ADMIN_EMAIL){document.getElementById("email").value=savedEmail;showLoggedIn(true);void load()}else showLoggedIn(false);
+showLoggedIn(false);
 </script>
 </body>
 </html>
