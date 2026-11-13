@@ -77,9 +77,10 @@ $("access-form").addEventListener("submit",async e=>{
  email=v;$("access-card").classList.add("hidden");$("control-card").classList.remove("hidden");
  await loadPlayers();
 });
+function ballRadius(w,n){return Math.max(2.5,Math.min(12,w*.035/Math.sqrt(Math.max(n,1))))}
 function makePreviewBalls(){
  const w=canvas.clientWidth,c=w/2,R=w*.405,n=players.length;
- const radius=Math.max(3.2,Math.min(8,w*.012,Math.sqrt((w*w*.35)/(Math.max(n,1)*Math.PI))*.34));
+ const radius=ballRadius(w,n);
  balls=players.map((p,i)=>{
   const a=-Math.PI/2+(TAU*i/Math.max(n,1));
   const ring=n===1?0:R*.43;
@@ -89,8 +90,8 @@ function makePreviewBalls(){
 }
 function makeBalls(){
  const w=canvas.clientWidth,c=w/2,R=w*.405,n=players.length;
- const radius=Math.max(3.2,Math.min(8,w*.012,Math.sqrt((w*w*.35)/(n*Math.PI))*.34));
- balls=players.map((p,i)=>({name:p.username,color:palette[i%palette.length],x:c+(Math.random()-.5)*R*.65,y:-radius-Math.random()*w*.35,vx:(Math.random()-.5)*120,vy:90+Math.random()*110,r:radius,alive:true,drop:Math.random()*.8}));
+ const radius=ballRadius(w,n);
+ balls=players.map((p,i)=>({name:p.username,color:palette[i%palette.length],x:c+(Math.random()-.5)*R*.65,y:-radius-Math.random()*w*.35,vx:(Math.random()-.5)*600,vy:450+Math.random()*550,r:radius,alive:true,drop:Math.random()*.8}));
 }
 function startRecording(){
  recordedChunks=[];if(videoUrl){URL.revokeObjectURL(videoUrl);videoUrl="";}
@@ -126,7 +127,7 @@ function loop(t){
  if(elapsed>reverseAt){spin*=-1;reverseAt=elapsed+4+Math.random()*4}angle+=spin*dt;
  const w=canvas.clientWidth,c=w/2,R=w*.405;
  for(const b of balls){if(!b.alive)continue;b.drop=Math.min(1,b.drop+dt/1.65);if(b.drop<1){b.y+=(c-b.y)*Math.min(1,dt*2.5);continue}
-  b.vy+=45*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+  b.vy+=225*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
   const dx=b.x-c,dy=b.y-c,dist=Math.hypot(dx,dy),a=Math.atan2(dy,dx),gapAngle=angle-Math.PI/2;
   const da=Math.atan2(Math.sin(a-gapAngle),Math.cos(a-gapAngle));
   if(dist+b.r>R){
