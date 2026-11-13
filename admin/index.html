@@ -14,6 +14,7 @@ input{width:100%;background:#120c1c;border:1px solid #594071;border-radius:11px;
 .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.stats{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.stat{background:#140e20;border:1px solid #342443;border-radius:12px;padding:12px 16px;min-width:130px}.stat strong{display:block;font-size:1.5rem}.stat span{color:var(--muted);font-size:.85rem}
 #search{max-width:340px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:540px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #392650}th{color:#d9c7ff;font-size:.85rem}td{font-size:.93rem}.pill{display:inline-block;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:700}.yes{background:#17432c;color:#b9f2cc}.no{background:#49351a;color:#ffdfa5}.empty{color:var(--muted);padding:20px 4px}
 #dashboard{display:none}.tiny{font-size:.78rem;color:#8e7da5;margin-top:18px}
+#cash-activity{margin:18px 0;background:#140e20}.activity-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #392650}.activity-row:first-of-type{border-top:0}.activity-row strong{display:block}.activity-row span{color:var(--muted);font-size:.82rem}.activity-open{color:#b9f2cc}.activity-wait{color:#ffdfa5}@media(max-width:650px){.activity-row{grid-template-columns:1fr 1fr}.activity-row>div:last-child{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -39,6 +40,13 @@ input{width:100%;background:#120c1c;border:1px solid #594071;border-radius:11px;
 </form>
 <p id="verify-status" class="status" role="status" aria-live="polite"></p>
 </div>
+
+<div class="panel" id="cash-activity">
+ <div class="toolbar"><div><h3>Cash Clicker message activity</h3><p class="muted">See whether a player has opened their personalized page.</p></div><button class="secondary" id="refresh-activity">Refresh activity</button></div>
+ <div id="cash-activity-rows"><p class="empty">Activity will appear here when the dashboard loads.</p></div>
+ <p class="tiny">Only the date and time of page opens are recorded. No IP address or device details are collected.</p>
+</div>
+
 <input id="search" type="search" placeholder="Search Instagram username…" aria-label="Search usernames">
 <div class="table-wrap"><table><thead><tr><th>Instagram username</th><th>Joined</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody></table></div>
 <p id="dash-status" class="status" role="status" aria-live="polite"></p>
@@ -64,6 +72,7 @@ async function load(){
   const result=await response.json().catch(()=>({}));
   if(!response.ok){const message=result.error||"Couldn't load members.";say(dashStatus,message,"bad");say(loginStatus,message,"bad");return false}
   signups=result.signups||[];
+  renderPageActivity(result.pageViews||[]);
   document.getElementById("total").textContent=signups.length;
   const verified=signups.filter(x=>x.verified).length;
   document.getElementById("verified").textContent=verified;
@@ -71,6 +80,22 @@ async function load(){
   render();say(dashStatus,"List is up to date.","good");return true;
  }catch(error){const message="Couldn't reach the signup server. Check your connection and try again.";say(dashStatus,message,"bad");say(loginStatus,message,"bad");return false}
 }
+
+function renderPageActivity(items){
+ const root=document.getElementById("cash-activity-rows");root.replaceChildren();
+ if(!items||!items.length){const p=document.createElement("p");p.className="empty";p.textContent="No personalized Cash Clicker pages are set up.";root.append(p);return;}
+ for(const item of items){
+  const row=document.createElement("div");row.className="activity-row";
+  const who=document.createElement("div"),status=document.createElement("div"),first=document.createElement("div"),last=document.createElement("div");
+  const name=document.createElement("strong");name.textContent=item.username||"Cash Clicker player";who.append(name);
+  const state=document.createElement("strong");state.className=item.total_opens>0?"activity-open":"activity-wait";state.textContent=item.total_opens>0?"Opened":"Not opened yet";
+  const count=document.createElement("span");count.textContent=(item.total_opens||0)+" total opens";status.append(state,count);
+  const firstLabel=document.createElement("span");firstLabel.textContent="First opened";const firstValue=document.createElement("strong");firstValue.textContent=item.first_opened?new Date(item.first_opened).toLocaleString():"—";first.append(firstLabel,firstValue);
+  const lastLabel=document.createElement("span");lastLabel.textContent="Last opened";const lastValue=document.createElement("strong");lastValue.textContent=item.last_opened?new Date(item.last_opened).toLocaleString():"—";last.append(lastLabel,lastValue);
+  row.append(who,status,first,last);root.append(row);
+ }
+}
+
 function render(){
  const term=document.getElementById("search").value.trim().replace(/^@/,"").toLowerCase();
  const filtered=signups.filter(x=>x.username.toLowerCase().includes(term));
@@ -110,6 +135,7 @@ document.getElementById("verify-form").addEventListener("submit",async e=>{
  button.disabled=false;
 });
 document.getElementById("refresh").addEventListener("click",load);
+document.getElementById("refresh-activity").addEventListener("click",load);
 document.getElementById("logout").addEventListener("click",()=>{adminEmailEntered="";document.getElementById("email").value="";showLoggedIn(false);say(loginStatus,"Signed out.")});
 document.getElementById("search").addEventListener("input",render);
 showLoggedIn(false);
