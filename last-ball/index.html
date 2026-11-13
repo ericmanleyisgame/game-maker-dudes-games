@@ -131,7 +131,10 @@ function loop(t){
   const dx=b.x-c,dy=b.y-c,dist=Math.hypot(dx,dy),a=Math.atan2(dy,dx),gapAngle=angle-Math.PI/2;
   const da=Math.atan2(Math.sin(a-gapAngle),Math.cos(a-gapAngle));
   if(dist+b.r>R){
-   if(Math.abs(da)<gapSize/2+.015&&dist>R-b.r*.25){b.alive=false;continue}
+   // The opening is empty space: remove a ball as soon as its edge reaches it.
+   // Do not wait for its center to cross the ring, or the wall response traps it.
+   const ballHalfAngle=Math.asin(Math.min(.99,b.r/Math.max(dist,1)));
+   if(Math.abs(da)<gapSize/2+ballHalfAngle){b.alive=false;continue}
    const nx=dx/(dist||1),ny=dy/(dist||1),wallVx=-ny*spin*R*.55,wallVy=nx*spin*R*.55;
    const rvx=b.vx-wallVx,rvy=b.vy-wallVy,radial=rvx*nx+rvy*ny;
    b.x=c+nx*(R-b.r);b.y=c+ny*(R-b.r);
