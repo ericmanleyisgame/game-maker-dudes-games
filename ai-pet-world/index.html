@@ -53,15 +53,24 @@ const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',f
 const $=id=>document.getElementById(id);const rand=(a,b)=>Math.random()*(b-a)+a;const pick=a=>a[Math.floor(Math.random()*a.length)];
 function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
-function tree(x,y,s=1){
+function tree(x,y,s=1,kind=0){
  ctx.save();ctx.translate(x,y);ctx.scale(s,s);
- ellipse(3,25,31,10,'#426b3f55');
- const trunk=ctx.createLinearGradient(-8,0,9,0);trunk.addColorStop(0,'#68432e');trunk.addColorStop(.45,'#a87349');trunk.addColorStop(1,'#70462f');
- rounded(-7,-5,14,43,5,trunk);
- ctx.strokeStyle='#d19a68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-2,5);ctx.lineTo(-4,30);ctx.moveTo(4,12);ctx.lineTo(5,26);ctx.stroke();
- const crown=ctx.createRadialGradient(-12,-38,4,0,-25,48);crown.addColorStop(0,'#83c878');crown.addColorStop(.48,'#438e54');crown.addColorStop(1,'#235b3d');
- ellipse(0,-31,34,38,crown);ellipse(-22,-25,23,27,'#3f8950');ellipse(22,-30,24,28,'#347a48');ellipse(-9,-48,20,20,'#68aa5e');
- for(let i=0;i<9;i++){const a=i*2.4;ellipse(Math.cos(a)*22-5,-31+Math.sin(a)*23,3,2,'#a1d27b')}
+ ellipse(0,31,43,13,'#294d3655');
+ // roots and a gently irregular trunk
+ ctx.fillStyle='#68432f';ctx.beginPath();ctx.moveTo(-8,1);ctx.quadraticCurveTo(-11,20,-23,29);ctx.quadraticCurveTo(-9,31,-3,21);ctx.lineTo(4,22);ctx.quadraticCurveTo(13,33,24,28);ctx.quadraticCurveTo(11,17,9,0);ctx.closePath();ctx.fill();
+ const bark=ctx.createLinearGradient(-12,0,13,0);bark.addColorStop(0,'#583a2b');bark.addColorStop(.32,'#a87349');bark.addColorStop(.62,'#815235');bark.addColorStop(1,'#4f3529');
+ rounded(-9,-23,18,51,6,bark);
+ ctx.strokeStyle='#d09a68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-4,-12);ctx.quadraticCurveTo(-7,5,-5,20);ctx.moveTo(4,-5);ctx.quadraticCurveTo(7,7,5,17);ctx.stroke();
+ ctx.strokeStyle='#69452f';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(0,-8);ctx.lineTo(-17,-27);ctx.moveTo(2,-3);ctx.lineTo(18,-25);ctx.stroke();
+ if(kind===1){
+  for(let q=0;q<4;q++){const yy=-22-q*19,w=35-q*6;ctx.fillStyle=['#285e43','#34764b','#286442','#3b8050'][q];ctx.beginPath();ctx.moveTo(0,yy-42);ctx.lineTo(-w,yy+12);ctx.quadraticCurveTo(0,yy+3,w,yy+12);ctx.closePath();ctx.fill();ctx.strokeStyle='#6ba66a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,yy-32);ctx.lineTo(0,yy+3);ctx.stroke();}
+ }else{
+  const shades=['#245d3d','#2d7046','#347c4a','#438d50','#5a9b57'];
+  const crown=ctx.createRadialGradient(-13,-65,5,0,-43,62);crown.addColorStop(0,'#91ce78');crown.addColorStop(.4,'#4b9656');crown.addColorStop(1,'#20583a');
+  ellipse(0,-48,38,48,crown);
+  ellipse(-25,-42,26,31,shades[1]);ellipse(24,-47,27,32,shades[0]);ellipse(-10,-70,25,27,shades[3]);ellipse(13,-67,24,28,shades[2]);ellipse(0,-31,31,28,shades[1]);
+  for(let i=0;i<23;i++){const a=i*2.399,r=12+(i%5)*6;ellipse(Math.cos(a)*r,-48+Math.sin(a)*r*.85,2.3,2.8,i%3===0?'#b4d77a':i%2?'#75b765':'#397b49')}
+ }
  ctx.restore();
 }
 function drawWorld(){
@@ -96,7 +105,12 @@ function drawWorld(){
  for(let gx=sx;gx<=ex;gx++)for(let gy=sy;gy<=ey;gy++){
   const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+35+(seed%1)*125,y=gy*cell+35+((seed*7.3)%1)*125;
   for(let j=0;j<34;j++){const px=gx*cell+((j*73+seed*90)%205),py=gy*cell+((j*47+seed*130)%205);ctx.strokeStyle=j%2?'#6fae65':'#c0e3a3';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,py+3);ctx.quadraticCurveTo(px-3,py-2,px-2,py-5);ctx.stroke();if(j%4===0)ellipse(px+5,py+3,2,2,'#e5d58a')}
-  if(seed>.34&&seed<.83)tree(x,y,.72+(seed%0.4));
+  // Dense, repeatable woodland clusters: broadleaf trees mixed with tall evergreens.
+  for(let t=0;t<4;t++){
+   const n=Math.abs(Math.sin((gx*19+t*7)*91.7+(gy*23+t)*17.3)*43758.5453)%1;
+   const tx=gx*cell+18+((n*173+t*41)%184),ty=gy*cell+18+((n*119+t*53)%184);
+   if(n>.08)tree(tx,ty,.62+((n*3+t*.17)%0.38),((gx+gy+t)%4===0)?1:0);
+  }
   if(seed>.88){ellipse(x+25,y+21,57,35,'#467e68');ellipse(x+25,y+15,53,32,'#397fa4');ellipse(x+25,y+11,47,26,'#68b5d0');ctx.strokeStyle='#b2e3e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+10,y+6,18,5,-.2,0,Math.PI*2);ctx.stroke();}
   if(seed<.12){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
  }
