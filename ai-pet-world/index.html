@@ -91,6 +91,7 @@ function drawWorld(){
  const left=camera.x-W/2,top=camera.y-H/2;
  const ground=ctx.createLinearGradient(0,0,0,H);ground.addColorStop(0,'#a8d69a');ground.addColorStop(.55,'#91c782');ground.addColorStop(1,'#78b66f');ctx.fillStyle=ground;ctx.fillRect(0,0,W,H);
  // Infinite grass: scenery is generated from world-space grid cells.
+ ctx.save();ctx.translate(-left,-top);
  const cell=220, sx=Math.floor(left/cell)-1, ex=Math.ceil((left+W)/cell)+1, sy=Math.floor(top/cell)-1, ey=Math.ceil((top+H)/cell)+1;
  for(let gx=sx;gx<=ex;gx++)for(let gy=sy;gy<=ey;gy++){
   const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+35+(seed%1)*125,y=gy*cell+35+((seed*7.3)%1)*125;
@@ -99,7 +100,8 @@ function drawWorld(){
   if(seed>.88){ellipse(x+25,y+21,57,35,'#467e68');ellipse(x+25,y+15,53,32,'#397fa4');ellipse(x+25,y+11,47,26,'#68b5d0');ctx.strokeStyle='#b2e3e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+10,y+6,18,5,-.2,0,Math.PI*2);ctx.stroke();}
   if(seed<.12){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
  }
- // A familiar home remains at its world location, no matter how far Mochi roams.
+ // Draw the cabin and Mochi in the same camera/world coordinate space.
+ ctx.restore();
  ctx.save();ctx.translate(-left,-top);
  ellipse(162,425,125,18,'#426d4355');rounded(72,290,180,130,12,'#a8754e');
  const wall=ctx.createLinearGradient(70,290,250,420);wall.addColorStop(0,'#c18a5b');wall.addColorStop(1,'#87583d');rounded(72,290,180,130,12,wall);
