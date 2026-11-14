@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#160d25">
+<title>AI Pet World</title>
+<style>
+:root{color-scheme:dark;--bg:#100a19;--panel:#1c122b;--panel2:#26183a;--purple:#b58aff;--muted:#b9a9d0;--line:#392650}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#392052 0%,var(--bg) 58%);color:#f8f4ff;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px max(18px,calc((100% - 1180px)/2));border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#bd9aff,#7442c7);font-size:23px}h1{font-size:1.15rem;margin:0}header p{margin:3px 0 0;color:var(--muted);font-size:.82rem}
+a.back{color:#ddccff;text-decoration:none;border:1px solid #60417f;padding:9px 13px;border-radius:10px;font-size:.88rem}
+main{width:min(1180px,calc(100% - 28px));margin:24px auto 60px}.intro{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:16px}.intro h2{font-size:clamp(1.5rem,4vw,2.2rem);margin:0;letter-spacing:-.04em}.intro p{color:var(--muted);margin:6px 0 0}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}.world-card,.panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 18px 45px #0003}
+.world-top{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);font-size:.9rem}.live{color:#9ef0b5}.live:before{content:"";display:inline-block;width:7px;height:7px;background:#69e28c;border-radius:50%;margin-right:7px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/560;background:#9acb91;image-rendering:pixelated}
+.world-foot{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--line)}
+.side{display:flex;flex-direction:column;gap:14px}.panel{padding:16px}.pet-head{display:flex;gap:12px;align-items:center}.avatar{width:54px;height:54px;border-radius:17px;background:#513675;display:grid;place-items:center;font-size:31px}.pet-head h3{margin:0 0 3px}.pet-head p{margin:0;color:var(--muted);font-size:.8rem}.level{margin-left:auto;color:#e4d1ff;font-size:.78rem;background:#513675;padding:6px 9px;border-radius:99px}
+.stats{display:grid;gap:11px;margin-top:17px}.statline{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px}.statline span:last-child{color:var(--muted)}.bar{height:8px;background:#120d1c;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px;transition:width .3s;background:linear-gradient(90deg,#8c61d1,#c6a5ff)}
+h4{margin:0 0 11px;font-size:.95rem}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button,.smallbtn{border:1px solid #634488;background:#342149;color:#f6edff;padding:10px;border-radius:11px;font:inherit;font-size:.82rem;cursor:pointer;transition:.15s}.actions button:hover,.smallbtn:hover{background:#513675;transform:translateY(-1px)}button:focus-visible,a:focus-visible{outline:2px solid #d8bdff;outline-offset:2px}.actions button span{display:block;font-size:1.25rem;margin-bottom:3px}.actions .wide{grid-column:1/-1}
+.thought{font-size:.88rem;line-height:1.5;color:#e9dcff;background:#130d20;border:1px solid #47305f;border-radius:12px;padding:12px;min-height:60px}.log{display:flex;flex-direction:column;gap:9px;max-height:175px;overflow:auto}.event{font-size:.78rem;color:var(--muted);line-height:1.4;display:flex;gap:8px}.event b{color:#e9dcff;font-weight:600}.inventory{display:flex;flex-wrap:wrap;gap:7px}.item{background:#130d20;border:1px solid #44305a;border-radius:9px;padding:6px 9px;font-size:.76rem;color:#dfd0f3}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2b1b3d;border:1px solid #8060a8;border-radius:12px;padding:10px 15px;box-shadow:0 10px 35px #0008;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}
+@media(max-width:820px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side .panel:first-child{grid-column:1/-1}}
+@media(max-width:520px){header{padding:13px}.intro{display:block}.side{display:flex}.world-foot{font-size:.72rem}}
+</style></head>
+<body>
+<header><div class="brand"><div class="logo">🐾</div><div><h1>AI Pet World</h1><p>A tiny world with a mind of its own</p></div></div><a class="back" href="../">← All games</a></header>
+<main>
+<div class="intro"><div><h2>Your pet. Their little world.</h2><p>They choose what to do next. Hang out and see what happens.</p></div></div>
+<div class="layout">
+<section class="world-card"><div class="world-top"><span>🌿 Mosswood Valley</span><span class="live">Living world</span></div><canvas id="world" width="900" height="560" aria-label="A little forest world with a pond, cabin, trees, and your pet"></canvas><div class="world-foot"><span>☀️ <span id="weather">Sunny afternoon</span></span><span id="activity">Your pet is looking around...</span></div></section>
+<aside class="side">
+<section class="panel"><div class="pet-head"><div class="avatar">🦊</div><div><h3 id="petName">Mochi</h3><p id="mood">Curious • Feeling good</p></div><span class="level" id="level">Lv. 1</span></div>
+<div class="stats">
+<div><div class="statline"><span>😊 Happiness</span><span id="happyText">82%</span></div><div class="bar"><div class="fill" id="happyBar" style="width:82%"></div></div></div>
+<div><div class="statline"><span>🍎 Hunger</span><span id="hungerText">24%</span></div><div class="bar"><div class="fill" id="hungerBar" style="width:24%"></div></div></div>
+<div><div class="statline"><span>⚡ Energy</span><span id="energyText">88%</span></div><div class="bar"><div class="fill" id="energyBar" style="width:88%"></div></div></div>
+<div><div class="statline"><span>🧠 Experience</span><span id="xpText">0 / 100</span></div><div class="bar"><div class="fill" id="xpBar" style="width:0%"></div></div></div>
+</div></section>
+<section class="panel"><h4>Give them an idea</h4><div class="actions">
+<button data-action="draw"><span>🎨</span>Draw</button><button data-action="fish"><span>🎣</span>Go fishing</button>
+<button data-action="explore"><span>🌲</span>Explore</button><button data-action="hunt"><span>🐾</span>Go hunting</button>
+<button data-action="home"><span>🏡</span>Go home</button><button data-action="snack"><span>🍓</span>Have a snack</button>
+<button class="wide" data-action="play"><span>💜</span>Spend time together</button>
+</div></section>
+<section class="panel"><h4>💭 What's on their mind?</h4><div class="thought" id="thought">“I wonder what that little pond looks like today...”</div></section>
+<section class="panel"><h4>🎒 Their pockets</h4><div class="inventory" id="inventory"><span class="item">🍓 Berries × 2</span><span class="item">🪵 Wood × 0</span><span class="item">🐟 Fish × 0</span><span class="item">🖼️ Art × 0</span></div></section>
+<section class="panel"><h4>📖 Little life updates</h4><div class="log" id="log"><div class="event"><b>Just now</b> Mochi woke up in Mosswood Valley.</div></div></section>
+</aside></div></main><div class="toast" id="toast"></div>
+<script>
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',frame:0,dir:1};let state={happiness:82,hunger:24,energy:88,xp:0,level:1,berries:2,wood:0,fish:0,art:0,thought:'I wonder what that little pond looks like today...',activity:'Wandering around',logs:[],name:'Mochi'};
+const $=id=>document.getElementById(id);const rand=(a,b)=>Math.random()*(b-a)+a;const pick=a=>a[Math.floor(Math.random()*a.length)];
+function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
+function tree(x,y,s=1){ellipse(x,y+19*s,22*s,8*s,'#5d8b50');rounded(x-5*s,y-7*s,10*s,29*s,4,'#8b5b39');ellipse(x,y-19*s,25*s,27*s,'#367d50');ellipse(x-12*s,y-23*s,15*s,17*s,'#4c995c');ellipse(x+12*s,y-27*s,15*s,17*s,'#2e7049')}
+function drawWorld(){
+ctx.clearRect(0,0,W,H);ctx.fillStyle='#9acb91';ctx.fillRect(0,0,W,H);
+// grass patches
+for(let i=0;i<90;i++){let x=(i*137)%W,y=(i*83)%H;ellipse(x,y,rand(2,5),rand(1,3),i%2?'#8fc184':'#a8d69b')}
+// paths
+ctx.strokeStyle='#d9c28f';ctx.lineWidth=48;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(455,560);ctx.bezierCurveTo(390,450,540,390,470,300);ctx.bezierCurveTo(390,220,290,190,300,90);ctx.stroke();
+ctx.strokeStyle='#ead6a7';ctx.lineWidth=3;ctx.setLineDash([5,14]);ctx.stroke();ctx.setLineDash([]);
+// pond
+ellipse(700,345,150,95,'#558fba');ellipse(700,340,137,81,'#6bb0ce');ellipse(668,315,33,5,'#a9dced');ellipse(740,370,23,4,'#a9dced');
+for(let i=0;i<7;i++){let x=605+i*30,y=260+(i%3)*13;ellipse(x,y,13,5,'#478c57');ellipse(x,y-2,5,3,'#c3e38a')}
+// cabin
+rounded(72,290,180,130,12,'#9b6847');ctx.fillStyle='#74462f';ctx.beginPath();ctx.moveTo(55,300);ctx.lineTo(160,215);ctx.lineTo(268,300);ctx.closePath();ctx.fill();rounded(139,345,46,75,7,'#533b35');rounded(89,318,34,32,5,'#a9d8e4');rounded(199,318,34,32,5,'#a9d8e4');rounded(142,375,6,6,3,'#d8b46c');
+// forest trees
+[[45,100,1.3],[110,145,1],[225,115,1.2],[330,65,1.1],[430,105,1.1],[535,75,1.25],[825,100,1.35],[870,210,1.1],[835,470,1.2],[570,475,1.15],[330,470,1.1],[65,480,1.2]].forEach(a=>tree(...a));
+// mushrooms + flowers
+for(let i=0;i<15;i++){let x=280+(i*41)%300,y=410+(i*23)%100;ellipse(x,y,4,5,'#f4e6cf');ellipse(x,y-4,7,4,i%2?'#e58a85':'#d56d83')}
+ctx.font='bold 18px system-ui';ctx.fillStyle='#234d36';ctx.fillText('MOSSWOOD',615,490);ctx.font='14px system-ui';ctx.fillText('POND',680,455);ctx.fillText('HOME',132,445);
+// activity markers
+if(pet.action==='fish'){ellipse(700,245,20,9,'#fff2b8');ctx.font='22px system-ui';ctx.fillText('🎣',682,235)}
+if(pet.action==='draw'){ctx.font='24px system-ui';ctx.fillText('🎨',pet.x+28,pet.y-28)}
+// pet shadow and fox
+ellipse(pet.x,pet.y+24,25,9,'#46764b66');ctx.save();ctx.translate(pet.x,pet.y);if(pet.dir<0)ctx.scale(-1,1);
+ctx.fillStyle='#e98b4d';ctx.beginPath();ctx.ellipse(0,5,24,18,0,0,Math.PI*2);ctx.fill();
+ctx.beginPath();ctx.moveTo(-16,-5);ctx.lineTo(-23,-27);ctx.lineTo(-5,-15);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(7,-12);ctx.lineTo(20,-31);ctx.lineTo(22,-5);ctx.closePath();ctx.fill();
+ellipse(14,13,12,9,'#fff0d7');ellipse(-18,15,12,7,'#fff0d7');ellipse(7,-1,3,3,'#251a24');ellipse(20,2,2.5,2.5,'#251a24');ellipse(25,8,3,2,'#34202a');
+ctx.restore();
+if(pet.action==='sleep'){ctx.font='22px system-ui';ctx.fillText('💤',pet.x+25,pet.y-28)}
+if(pet.action==='draw'){rounded(300,455,160,65,8,'#fff5df');ctx.strokeStyle='#bc796b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(325,493);ctx.lineTo(355,470);ctx.lineTo(380,500);ctx.lineTo(420,470);ctx.stroke()}
+}
+function log(msg){state.logs.unshift(msg);state.logs=state.logs.slice(0,8);$('log').innerHTML=state.logs.map((m,i)=>'<div class="event"><b>'+(i===0?'Now':'A little earlier')+'</b> '+m+'</div>').join('')}
+function thought(t){state.thought=t;$('thought').textContent='“'+t+'”'}
+function gainXP(n){state.xp+=n;if(state.xp>=100){state.xp-=100;state.level++;state.happiness=Math.min(100,state.happiness+8);log('Mochi reached level '+state.level+'! 🌟')}}
+function go(x,y,action){pet.targetX=x;pet.targetY=y;pet.action=action;state.activity=action; $('activity').textContent='Mochi is '+action+'...'}
+function doAction(a){
+if(a==='draw'){go(380,465,'drawing');thought('I have an idea for a picture!');}
+if(a==='fish'){go(700,280,'fishing');thought('I hope I catch a shiny fish.');}
+if(a==='explore'){go(rand(300,540),rand(150,440),'exploring');thought('I wonder what is hiding between those trees...');}
+if(a==='hunt'){go(rand(500,610),rand(350,440),'tracking tiny forest critters');thought('Time for a little woodland adventure.');}
+if(a==='home'){go(175,410,'heading home');thought('My cozy cabin sounds nice right now.');}
+if(a==='snack'){if(state.berries>0){state.berries--;state.hunger=Math.max(0,state.hunger-28);state.happiness=Math.min(100,state.happiness+5);thought('Mmm! Those berries were delicious.');log('Mochi ate some berries.');}else{thought('I am hungry... maybe I should find some berries.');log('Mochi looked for a snack, but the berry pouch was empty.')}} 
+if(a==='play'){state.happiness=Math.min(100,state.happiness+16);state.energy=Math.max(0,state.energy-5);thought('Yay! I like hanging out with you.');log('You spent some time playing with Mochi.');}
+renderUI();
+}
+document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>doAction(b.dataset.action)));
+function autonomous(){
+if(pet.x===pet.targetX&&pet.y===pet.targetY||Math.hypot(pet.x-pet.targetX,pet.y-pet.targetY)<4){
+const a=pet.action;
+if(a==='drawing'){state.art++;gainXP(22);state.happiness=Math.min(100,state.happiness+8);log('Mochi finished a new drawing. 🎨');thought('Look! I made this all by myself!');}
+else if(a==='fishing'){if(Math.random()>.25){state.fish++;gainXP(18);state.hunger=Math.max(0,state.hunger-4);log('Mochi caught a fish at the pond. 🐟');thought('A fish! The pond is full of surprises.')}else{thought('No fish today. I will try again later.');log('Mochi watched the ripples for a while.');}}
+else if(a==='tracking tiny forest critters'){state.berries+=Math.random()>.5?1:0;state.wood+=1;gainXP(20);log('Mochi explored the woods and found useful things.');thought('That was a fun little adventure!');}
+else if(a==='exploring'){state.wood+=1;gainXP(12);log('Mochi found a neat spot in the forest.');thought('I should remember this place.');}
+else if(a==='heading home'){state.energy=Math.min(100,state.energy+12);thought('Home sweet home.');log('Mochi came back to the cabin to rest.');}
+else if(a==='wander'){state.energy=Math.max(0,state.energy-1);}
+pet.action='idle';state.activity='deciding what to do';$('activity').textContent='Mochi is deciding what to do...';renderUI();
+setTimeout(()=>{if(pet.action==='idle')chooseOwnActivity()},1600);
+}
+}
+function chooseOwnActivity(){
+if(pet.action!=='idle')return;
+if(state.energy<22){go(175,410,'heading home');thought(pick(['I am getting sleepy. Home time!','A little rest would be lovely.','My paws need a break.']));return}
+if(state.hunger>70&&state.berries>0){doAction('snack');return}
+const options=['draw','fish','explore','hunt','wander','home'];let a=pick(options);
+if(a==='wander'){go(rand(280,570),rand(170,440),'wandering');thought(pick(['I like the breeze today.','I wonder what I should do next.','The world is so big!']))}
+else{doAction(a);log('Mochi decided to '+({draw:'make some art',fish:'go fishing',explore:'explore the forest',hunt:'go on a woodland hunt',home:'head back to the cabin'}[a])+'.')}
+}
+function renderUI(){
+for(const [k,v] of Object.entries({happy:state.happiness,hunger:state.hunger,energy:state.energy,xp:state.xp})){const value=k==='xp'?v:Math.round(v);$(k+'Text').textContent=k==='xp'?value+' / 100':value+'%';$(k+'Bar').style.width=value+'%'}
+$('level').textContent='Lv. '+state.level;$('mood').textContent=state.happiness>70?'Curious • Feeling good':state.happiness>40?'Chill • Doing okay':'A little bored';$('xpText').textContent=state.xp+' / 100';
+$('inventory').innerHTML='<span class="item">🍓 Berries × '+state.berries+'</span><span class="item">🪵 Wood × '+state.wood+'</span><span class="item">🐟 Fish × '+state.fish+'</span><span class="item">🖼️ Art × '+state.art+'</span>';
+try{localStorage.setItem('aiPetWorldSave',JSON.stringify(state))}catch(e){}
+}
+function tick(){state.hunger=Math.min(100,state.hunger+.08);if(state.energy>0&&pet.action!=='heading home')state.energy=Math.max(0,state.energy-.035);if(pet.x!==pet.targetX||pet.y!==pet.targetY){let dx=pet.targetX-pet.x,dy=pet.targetY-pet.y,d=Math.hypot(dx,dy),step=1.7;pet.x+=dx/d*Math.min(step,d);pet.y+=dy/d*Math.min(step,d);pet.dir=dx>=0?1:-1;}else autonomous();pet.frame++;drawWorld();if(pet.frame%15===0)renderUI()}
+try{const saved=JSON.parse(localStorage.getItem('aiPetWorldSave')||'null');if(saved){Object.assign(state,saved);renderUI();thought('I am back! I wonder what we should do today.');}}catch(e){}
+log('Mochi woke up in Mosswood Valley.');drawWorld();setInterval(tick,40);setInterval(()=>{if(pet.action==='idle')chooseOwnActivity()},5000);
+</script></body></html>
