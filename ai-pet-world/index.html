@@ -49,66 +49,76 @@ h4{margin:0 0 11px;font-size:.95rem}.actions{display:grid;grid-template-columns:
 </aside></div></main><div class="toast" id="toast"></div>
 <script>
 const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',frame:0,dir:1};let state={happiness:82,hunger:24,energy:88,xp:0,level:1,berries:2,wood:0,fish:0,art:0,thought:'I wonder what that little pond looks like today...',activity:'Wandering around',logs:[],name:'Mochi',request:null,hasCar:false};
+const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',frame:0,dir:1,indoor:false};const camera={x:0,y:0};let state={happiness:82,hunger:24,energy:88,xp:0,level:1,berries:2,wood:0,fish:0,art:0,thought:'I wonder what that little pond looks like today...',activity:'Wandering around',logs:[],name:'Mochi',request:null,hasCar:false};
 const $=id=>document.getElementById(id);const rand=(a,b)=>Math.random()*(b-a)+a;const pick=a=>a[Math.floor(Math.random()*a.length)];
 function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
 function tree(x,y,s=1){ellipse(x,y+19*s,22*s,8*s,'#5d8b50');rounded(x-5*s,y-7*s,10*s,29*s,4,'#8b5b39');ellipse(x,y-19*s,25*s,27*s,'#367d50');ellipse(x-12*s,y-23*s,15*s,17*s,'#4c995c');ellipse(x+12*s,y-27*s,15*s,17*s,'#2e7049')}
 function drawWorld(){
-ctx.clearRect(0,0,W,H);ctx.fillStyle='#9acb91';ctx.fillRect(0,0,W,H);
-// grass patches
-for(let i=0;i<90;i++){let x=(i*137)%W,y=(i*83)%H;ellipse(x,y,rand(2,5),rand(1,3),i%2?'#8fc184':'#a8d69b')}
-// paths
-ctx.strokeStyle='#d9c28f';ctx.lineWidth=48;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(455,560);ctx.bezierCurveTo(390,450,540,390,470,300);ctx.bezierCurveTo(390,220,290,190,300,90);ctx.stroke();
-ctx.strokeStyle='#ead6a7';ctx.lineWidth=3;ctx.setLineDash([5,14]);ctx.stroke();ctx.setLineDash([]);
-// pond
-ellipse(700,345,150,95,'#558fba');ellipse(700,340,137,81,'#6bb0ce');ellipse(668,315,33,5,'#a9dced');ellipse(740,370,23,4,'#a9dced');
-for(let i=0;i<7;i++){let x=605+i*30,y=260+(i%3)*13;ellipse(x,y,13,5,'#478c57');ellipse(x,y-2,5,3,'#c3e38a')}
-// cabin
-rounded(72,290,180,130,12,'#9b6847');ctx.fillStyle='#74462f';ctx.beginPath();ctx.moveTo(55,300);ctx.lineTo(160,215);ctx.lineTo(268,300);ctx.closePath();ctx.fill();rounded(139,345,46,75,7,'#533b35');rounded(89,318,34,32,5,'#a9d8e4');rounded(199,318,34,32,5,'#a9d8e4');rounded(142,375,6,6,3,'#d8b46c');
-// forest trees
-[[45,100,1.3],[110,145,1],[225,115,1.2],[330,65,1.1],[430,105,1.1],[535,75,1.25],[825,100,1.35],[870,210,1.1],[835,470,1.2],[570,475,1.15],[330,470,1.1],[65,480,1.2]].forEach(a=>tree(...a));
-// mushrooms + flowers
-for(let i=0;i<15;i++){let x=280+(i*41)%300,y=410+(i*23)%100;ellipse(x,y,4,5,'#f4e6cf');ellipse(x,y-4,7,4,i%2?'#e58a85':'#d56d83')}
-ctx.font='bold 18px system-ui';ctx.fillStyle='#234d36';ctx.fillText('MOSSWOOD',615,490);ctx.font='14px system-ui';ctx.fillText('POND',680,455);ctx.fillText('HOME',132,445);
-// Mochi's little car
-if(state.hasCar){rounded(110,465,58,24,8,'#d76e9b');ellipse(122,491,7,7,'#292238');ellipse(157,491,7,7,'#292238');rounded(122,450,28,19,6,'#f4c6df');}
-// activity markers
-if(pet.action==='fish'){ellipse(700,245,20,9,'#fff2b8');ctx.font='22px system-ui';ctx.fillText('🎣',682,235)}
-if(pet.action==='draw'){ctx.font='24px system-ui';ctx.fillText('🎨',pet.x+28,pet.y-28)}
-// pet shadow and unmistakable unicorn silhouette
-ellipse(pet.x,pet.y+25,28,9,'#46764b66');ctx.save();ctx.translate(pet.x,pet.y);if(pet.dir<0)ctx.scale(-1,1);
-// four little legs
-ctx.strokeStyle='#fff7ef';ctx.lineWidth=7;ctx.lineCap='round';
-for(const lx of [-13,-3,9,17]){ctx.beginPath();ctx.moveTo(lx,15);ctx.lineTo(lx+(lx%2?1:-1),27);ctx.stroke()}
-// rounded pony body and raised neck
-ellipse(0,5,25,15,'#fff7ef');
-ctx.save();ctx.translate(15,-8);ctx.rotate(-.48);rounded(-5,-19,15,34,7,'#fff7ef');ctx.restore();
-// horse head facing right, with muzzle (no fox ears)
-ellipse(21,-23,12,13,'#fff7ef');ellipse(30,-17,8,6,'#fff0d7');
-// pointed golden unicorn horn
-ctx.fillStyle='#f4c95d';ctx.beginPath();ctx.moveTo(20,-33);ctx.lineTo(28,-54);ctx.lineTo(29,-30);ctx.closePath();ctx.fill();
-// rainbow forelock, mane and flowing tail
-ctx.strokeStyle='#d98bd5';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(13,-28);ctx.quadraticCurveTo(0,-35,7,-47);ctx.stroke();
-ctx.strokeStyle='#9a8be8';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(10,-25);ctx.quadraticCurveTo(-2,-29,2,-40);ctx.stroke();
-ctx.strokeStyle='#d98bd5';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-22,2);ctx.quadraticCurveTo(-42,-6,-34,-23);ctx.stroke();
-ctx.strokeStyle='#83c8e8';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-23,2);ctx.quadraticCurveTo(-39,-7,-32,-20);ctx.stroke();
-// eye and nostril
-ellipse(25,-25,2.2,2.8,'#34202a');ellipse(35,-17,1.8,1.5,'#c98591');
-ctx.restore();
-if(pet.action==='sleep'){ctx.font='22px system-ui';ctx.fillText('💤',pet.x+25,pet.y-28)}
-if(pet.action==='draw'){rounded(300,455,160,65,8,'#fff5df');ctx.strokeStyle='#bc796b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(325,493);ctx.lineTo(355,470);ctx.lineTo(380,500);ctx.lineTo(420,470);ctx.stroke()}
+ ctx.clearRect(0,0,W,H);
+ if(pet.indoor){
+  const ox=W/2-camera.x,oy=H/2-camera.y;
+  ctx.fillStyle='#d9b98e';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f0d5ad';ctx.fillRect(18,18,W-36,H-36);
+  ctx.strokeStyle='#c49b70';ctx.lineWidth=8;ctx.strokeRect(18,18,W-36,H-36);
+  for(let x=35;x<W;x+=58)for(let y=35;y<H;y+=58){ctx.strokeStyle='#d8b88e';ctx.lineWidth=1;ctx.strokeRect(x,y,58,58)}
+  rounded(65,55,210,105,12,'#a96f4b');rounded(82,70,176,76,8,'#c68e60');
+  rounded(650,70,175,115,14,'#6e4c78');rounded(665,84,145,86,9,'#9d77a6');
+  rounded(350,55,180,75,12,'#b47b54');rounded(366,68,148,48,7,'#d7a879');
+  rounded(60,390,220,105,14,'#8b6248');rounded(76,405,188,75,9,'#b98a65');
+  rounded(650,390,190,105,14,'#64816a');rounded(666,405,158,75,9,'#91ac87');
+  ctx.fillStyle='#74503a';ctx.font='bold 20px system-ui';ctx.fillText('MOCHI’S COZY HOME',W/2-105,215);
+  ctx.font='15px system-ui';ctx.fillStyle='#76543d';ctx.fillText('A warm little place to rest',W/2-91,242);
+  drawPetAt(W/2+camera.x,H/2+camera.y);
+  ctx.fillStyle='#76543d';ctx.font='14px system-ui';ctx.fillText('🛏️ Bed',105,525);ctx.fillText('🧸 Toy corner',680,525);
+  return;
+ }
+ const left=camera.x-W/2,top=camera.y-H/2;
+ ctx.fillStyle='#9acb91';ctx.fillRect(0,0,W,H);
+ // Infinite grass: scenery is generated from world-space grid cells.
+ const cell=220, sx=Math.floor(left/cell)-1, ex=Math.ceil((left+W)/cell)+1, sy=Math.floor(top/cell)-1, ey=Math.ceil((top+H)/cell)+1;
+ for(let gx=sx;gx<=ex;gx++)for(let gy=sy;gy<=ey;gy++){
+  const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+35+(seed%1)*125,y=gy*cell+35+((seed*7.3)%1)*125;
+  for(let j=0;j<18;j++){const px=gx*cell+((j*73+seed*90)%205),py=gy*cell+((j*47+seed*130)%205);ellipse(px,py,3+(j%3),2,j%2?'#8fc184':'#a8d69b')}
+  if(seed>.34&&seed<.83)tree(x,y,.72+(seed%0.4));
+  if(seed>.88){ellipse(x+25,y+15,52,31,'#558fba');ellipse(x+25,y+12,44,24,'#6bb0ce');}
+  if(seed<.12){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
+ }
+ // A familiar home remains at its world location, no matter how far Mochi roams.
+ ctx.save();ctx.translate(-left,-top);
+ rounded(72,290,180,130,12,'#9b6847');ctx.fillStyle='#74462f';ctx.beginPath();ctx.moveTo(55,300);ctx.lineTo(160,215);ctx.lineTo(268,300);ctx.closePath();ctx.fill();rounded(139,345,46,75,7,'#533b35');rounded(89,318,34,32,5,'#a9d8e4');rounded(199,318,34,32,5,'#a9d8e4');rounded(142,375,6,6,3,'#d8b46c');
+  ctx.fillStyle='#234d36';ctx.font='bold 15px system-ui';ctx.fillText('MOCHI’S HOME',93,440);
+  if(state.hasCar){rounded(110,465,58,24,8,'#d76e9b');ellipse(122,491,7,7,'#292238');ellipse(157,491,7,7,'#292238');rounded(122,450,28,19,6,'#f4c6df');}
+  if(pet.action==='fish'){ctx.font='22px system-ui';ctx.fillText('🎣',pet.x+12,pet.y-25)}
+  if(pet.action==='draw'){ctx.font='24px system-ui';ctx.fillText('🎨',pet.x+28,pet.y-28)}
+  drawPetAt(pet.x,pet.y);
+ ctx.restore();
+}
+function drawPetAt(px,py){
+ ellipse(px,py+25,28,9,'#46764b66');ctx.save();ctx.translate(px,py);if(pet.dir<0)ctx.scale(-1,1);
+ ctx.strokeStyle='#fff7ef';ctx.lineWidth=7;ctx.lineCap='round';
+ for(const lx of [-13,-3,9,17]){ctx.beginPath();ctx.moveTo(lx,15);ctx.lineTo(lx+(lx%2?1:-1),27);ctx.stroke()}
+ ellipse(0,5,25,15,'#fff7ef');ctx.save();ctx.translate(15,-8);ctx.rotate(-.48);rounded(-5,-19,15,34,7,'#fff7ef');ctx.restore();
+ ellipse(21,-23,12,13,'#fff7ef');ellipse(30,-17,8,6,'#fff0d7');
+ ctx.fillStyle='#f4c95d';ctx.beginPath();ctx.moveTo(20,-33);ctx.lineTo(28,-54);ctx.lineTo(29,-30);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#d98bd5';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(13,-28);ctx.quadraticCurveTo(0,-35,7,-47);ctx.stroke();
+ ctx.strokeStyle='#9a8be8';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(10,-25);ctx.quadraticCurveTo(-2,-29,2,-40);ctx.stroke();
+ ctx.strokeStyle='#d98bd5';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-22,2);ctx.quadraticCurveTo(-42,-6,-34,-23);ctx.stroke();
+ ctx.strokeStyle='#83c8e8';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-23,2);ctx.quadraticCurveTo(-39,-7,-32,-20);ctx.stroke();
+ ellipse(25,-25,2.2,2.8,'#34202a');ellipse(35,-17,1.8,1.5,'#c98591');ctx.restore();
+ if(pet.action==='sleep'){ctx.font='22px system-ui';ctx.fillText('💤',px+25,py-28)}
+ if(pet.action==='drawing'){rounded(px-70,py+45,140,55,8,'#fff5df');ctx.strokeStyle='#bc796b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(px-48,py+80);ctx.lineTo(px-18,py+58);ctx.lineTo(px+7,py+87);ctx.lineTo(px+45,py+58);ctx.stroke()}
 }
 function log(msg){state.logs.unshift(msg);state.logs=state.logs.slice(0,8);$('log').innerHTML=state.logs.map((m,i)=>'<div class="event"><b>'+(i===0?'Now':'A little earlier')+'</b> '+m+'</div>').join('')}
 function thought(t){state.thought=t;$('thought').textContent='“'+t+'”'}
 function gainXP(n){state.xp+=n;if(state.xp>=100){state.xp-=100;state.level++;state.happiness=Math.min(100,state.happiness+8);log('Mochi reached level '+state.level+'! 🌟')}}
 function go(x,y,action){pet.targetX=x;pet.targetY=y;pet.action=action;state.activity=action; $('activity').textContent='Mochi is '+action+'...'}
-function doAction(a){
+function doAction(a){if(pet.indoor&&a!=='home'){pet.indoor=false;pet.x=175;pet.y=410;pet.targetX=175;pet.targetY=410;camera.x=175;camera.y=410;log('Mochi stepped back outside.');}
 if(a==='draw'){go(380,465,'drawing');thought('I have an idea for a picture!');}
 if(a==='fish'){go(700,280,'fishing');thought('I hope I catch a shiny fish.');}
-if(a==='explore'){go(rand(300,540),rand(150,440),'exploring');thought('I wonder what is hiding between those trees...');}
-if(a==='hunt'){go(rand(500,610),rand(350,440),'tracking tiny forest critters');thought('Time for a little woodland adventure.');}
-if(a==='home'){go(175,410,'heading home');thought('My cozy cabin sounds nice right now.');}
+if(a==='explore'){go(pet.x+rand(-950,950),pet.y+rand(-650,650),'exploring');thought('I wonder what is hiding between those trees...');}
+if(a==='hunt'){go(pet.x+rand(-500,500),pet.y+rand(-400,400),'tracking tiny forest critters');thought('Time for a little woodland adventure.');}
+if(a==='home'){if(pet.indoor){thought('I am already home!');return;}pet.indoor=false;go(175,410,'heading home');thought('My cozy cabin sounds nice right now.');}
 if(a==='snack'){if(state.berries>0){state.berries--;state.hunger=Math.max(0,state.hunger-28);state.happiness=Math.min(100,state.happiness+5);thought('Mmm! Those berries were delicious.');log('Mochi ate some berries.');}else{thought('I am hungry... maybe I should find some berries.');log('Mochi looked for a snack, but the berry pouch was empty.')}} 
 if(a==='play'){state.happiness=Math.min(100,state.happiness+16);state.energy=Math.max(0,state.energy-5);thought('Yay! I like hanging out with you.');log('You spent some time playing with Mochi.');}
 renderUI();
@@ -132,18 +142,18 @@ if(a==='drawing'){state.art++;gainXP(22);state.happiness=Math.min(100,state.happ
 else if(a==='fishing'){if(Math.random()>.25){state.fish++;gainXP(18);state.hunger=Math.max(0,state.hunger-4);log('Mochi caught a fish at the pond. 🐟');thought('A fish! The pond is full of surprises.')}else{thought('No fish today. I will try again later.');log('Mochi watched the ripples for a while.');}}
 else if(a==='tracking tiny forest critters'){state.berries+=Math.random()>.5?1:0;state.wood+=1;gainXP(20);log('Mochi explored the woods and found useful things.');thought('That was a fun little adventure!');}
 else if(a==='exploring'){state.wood+=1;gainXP(12);log('Mochi found a neat spot in the forest.');thought('I should remember this place.');}
-else if(a==='heading home'){state.energy=Math.min(100,state.energy+12);thought('Home sweet home.');log('Mochi came back to the cabin to rest.');}
+else if(a==='heading home'){pet.indoor=true;pet.x=0;pet.y=0;pet.targetX=0;pet.targetY=0;camera.x=0;camera.y=0;state.energy=Math.min(100,state.energy+12);thought('Home sweet home. I love my cozy little house!');log('Mochi went inside the cabin. The camera followed him into his home.');}
 else if(a==='wander'){state.energy=Math.max(0,state.energy-1);}
 pet.action='idle';state.activity='deciding what to do';$('activity').textContent='Mochi is deciding what to do...';renderUI();
-setTimeout(()=>{if(pet.action==='idle')chooseOwnActivity()},1600);
+setTimeout(()=>{if(pet.action==='idle'&&!pet.indoor)chooseOwnActivity()},1600);
 }
 }
 function chooseOwnActivity(){
-if(pet.action!=='idle')return;
-if(state.energy<22){go(175,410,'heading home');thought(pick(['I am getting sleepy. Home time!','A little rest would be lovely.','My paws need a break.']));return}
+if(pet.action!=='idle'||pet.indoor)return;
+if(state.energy<22){if(pet.indoor){pet.action='sleep';state.energy=Math.min(100,state.energy+0.2);return;}go(175,410,'heading home');thought(pick(['I am getting sleepy. Home time!','A little rest would be lovely.','My paws need a break.']));return}
 if(state.hunger>70&&state.berries>0){doAction('snack');return}
 const options=['draw','fish','explore','hunt','wander','home'];let a=pick(options);
-if(a==='wander'){go(rand(280,570),rand(170,440),'wandering');thought(pick(['I like the breeze today.','I wonder what I should do next.','The world is so big!']))}
+if(a==='wander'){go(pet.x+rand(-1000,1000),pet.y+rand(-700,700),'wandering');thought(pick(['I like the breeze today.','I wonder what I should do next.','The world is so big!']))}
 else{doAction(a);log('Mochi decided to '+({draw:'make some art',fish:'go fishing',explore:'explore the forest',hunt:'go on a woodland hunt',home:'head back to the cabin'}[a])+'.')}
 }
 function renderUI(){
@@ -152,7 +162,7 @@ $('level').textContent='Lv. '+state.level;$('mood').textContent=state.happiness>
 $('inventory').innerHTML='<span class="item">🍓 Berries × '+state.berries+'</span><span class="item">🪵 Wood × '+state.wood+'</span><span class="item">🐟 Fish × '+state.fish+'</span><span class="item">🖼️ Art × '+state.art+'</span>';
 try{localStorage.setItem('aiPetWorldSave',JSON.stringify(state))}catch(e){}
 }
-function tick(){state.hunger=Math.min(100,state.hunger+.08);if(state.energy>0&&pet.action!=='heading home')state.energy=Math.max(0,state.energy-.035);if(pet.x!==pet.targetX||pet.y!==pet.targetY){let dx=pet.targetX-pet.x,dy=pet.targetY-pet.y,d=Math.hypot(dx,dy),step=1.7;pet.x+=dx/d*Math.min(step,d);pet.y+=dy/d*Math.min(step,d);pet.dir=dx>=0?1:-1;}else autonomous();pet.frame++;drawWorld();if(pet.frame%15===0)renderUI()}
+function tick(){camera.x+=(pet.x-camera.x)*.075;camera.y+=(pet.y-camera.y)*.075;state.hunger=Math.min(100,state.hunger+.08);if(state.energy>0&&pet.action!=='heading home')state.energy=Math.max(0,state.energy-.035);if(pet.x!==pet.targetX||pet.y!==pet.targetY){let dx=pet.targetX-pet.x,dy=pet.targetY-pet.y,d=Math.hypot(dx,dy),step=1.7;pet.x+=dx/d*Math.min(step,d);pet.y+=dy/d*Math.min(step,d);pet.dir=dx>=0?1:-1;}else autonomous();pet.frame++;drawWorld();if(pet.frame%15===0)renderUI()}
 try{const saved=JSON.parse(localStorage.getItem('aiPetWorldSave')||'null');if(saved){Object.assign(state,saved);renderUI();thought('I am back! I wonder what we should do today.');}}catch(e){}
 log('Mochi woke up in Mosswood Valley.');drawWorld();setTimeout(showRequest,7000);setInterval(()=>{if(!state.request&&Math.random()>.35)showRequest()},28000);setInterval(tick,40);setInterval(()=>{if(pet.action==='idle')chooseOwnActivity()},5000);
 </script></body></html>
