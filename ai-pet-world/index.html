@@ -84,8 +84,34 @@ function drawWorld(){
   rounded(65,55,210,105,15,'#8e573e');rounded(75,65,190,85,12,'#b97b55');rounded(88,77,164,61,8,'#d69b6e');
   rounded(650,70,175,115,14,'#6e4c78');rounded(660,80,155,95,11,'#9d77a6');rounded(675,94,125,68,8,'#c4a2c8');
   rounded(350,55,180,75,12,'#94613e');rounded(360,65,160,55,9,'#d7a879');rounded(372,75,136,34,6,'#f0c99b');
-  rounded(60,390,220,105,14,'#76513d');rounded(70,400,200,85,11,'#b98a65');rounded(88,415,164,55,8,'#d9b48a');
-  rounded(650,390,190,105,14,'#4e6c53');rounded(660,400,170,85,11,'#91ac87');rounded(675,415,140,55,8,'#b7c99a');
+  // Mochi's proper little bed: carved wooden frame, mattress, pillows and a quilt.
+  ctx.save();
+  ctx.fillStyle='#00000022';ctx.beginPath();ctx.ellipse(172,482,120,15,0,0,Math.PI*2);ctx.fill();
+  rounded(68,356,214,22,9,'#70432f');rounded(76,362,198,13,6,'#b47b4d');
+  rounded(72,370,210,115,13,'#805037');rounded(80,375,194,101,10,'#d9b68d');
+  rounded(89,379,178,88,12,'#f4e5cb');
+  rounded(94,383,75,34,9,'#fff4df');rounded(178,383,75,34,9,'#fff4df');
+  const quilt=ctx.createLinearGradient(0,414,0,472);quilt.addColorStop(0,'#9c91c5');quilt.addColorStop(1,'#665c98');
+  rounded(86,414,188,58,12,quilt);
+  ctx.strokeStyle='#c9bee9';ctx.lineWidth=2;
+  for(let q=0;q<5;q++){ctx.beginPath();ctx.moveTo(94+q*36,420);ctx.lineTo(110+q*36,466);ctx.stroke()}
+  ctx.strokeStyle='#e5d7f4';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(91,443);ctx.lineTo(268,443);ctx.stroke();
+  rounded(64,350,222,13,7,'#8d5a3a');rounded(72,345,10,18,4,'#c18b5c');rounded(268,345,10,18,4,'#c18b5c');
+  ctx.restore();
+  // Toy nook with a woven basket and a little teddy bear.
+  ctx.save();
+  ctx.fillStyle='#00000020';ctx.beginPath();ctx.ellipse(740,486,92,12,0,0,Math.PI*2);ctx.fill();
+  rounded(660,426,160,58,15,'#a8754e');rounded(668,434,144,43,12,'#d6a46f');
+  ctx.strokeStyle='#9a653f';ctx.lineWidth=3;for(let yy=441;yy<474;yy+=9){ctx.beginPath();ctx.moveTo(672,yy);ctx.lineTo(808,yy);ctx.stroke()}
+  // teddy ears and head
+  ellipse(710,391,13,14,'#a96d45');ellipse(758,391,13,14,'#a96d45');
+  ellipse(734,402,29,25,'#bd8051');ellipse(734,448,28,25,'#bd8051');
+  ellipse(734,411,17,12,'#e5b98b');ellipse(734,404,3,3,'#392b27');ellipse(724,399,3,3,'#392b27');ellipse(744,399,3,3,'#392b27');
+  ellipse(734,445,12,13,'#d99d70');
+  ctx.strokeStyle='#e8bb8e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(717,431);ctx.lineTo(705,446);ctx.moveTo(751,431);ctx.lineTo(763,446);ctx.stroke();
+  // a couple of scattered wooden blocks beside the basket
+  rounded(790,393,25,25,5,'#d17b67');rounded(786,386,25,8,3,'#e6a08b');
+  rounded(676,396,24,24,5,'#d7b75d');ctx.restore();
   // cozy rug, wall pictures and window light
   rounded(350,285,200,130,18,'#b96d78');rounded(360,295,180,110,14,'#e4a0a0');
   ctx.strokeStyle='#f4d4bb';ctx.lineWidth=3;ctx.strokeRect(375,310,150,80);
@@ -94,7 +120,7 @@ function drawWorld(){
   ctx.fillStyle='#74503a';ctx.font='bold 20px system-ui';ctx.fillText('MOCHI’S COZY HOME',W/2-105,255);
   ctx.font='15px system-ui';ctx.fillStyle='#76543d';ctx.fillText('A warm little place to rest',W/2-91,242);
   drawPetAt(W/2+camera.x,H/2+camera.y);
-  ctx.fillStyle='#76543d';ctx.font='14px system-ui';ctx.fillText('🛏️ Bed',105,525);ctx.fillText('🧸 Toy corner',680,525);
+
   return;
  }
  const left=camera.x-W/2,top=camera.y-H/2;
