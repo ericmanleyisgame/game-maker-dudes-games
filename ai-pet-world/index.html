@@ -27,9 +27,9 @@ h4{margin:0 0 11px;font-size:.95rem}.actions{display:grid;grid-template-columns:
 <main>
 <div class="intro"><div><h2>Your pet. Their little world.</h2><p>They choose what to do next. Hang out and see what happens.</p></div></div>
 <div class="layout">
-<section class="world-card"><div class="world-top"><span>🌿 Mosswood Valley</span><span class="live">Living world</span></div><canvas id="world" width="900" height="560" aria-label="A little forest world with a pond, cabin, trees, and your pet"></canvas><div class="world-foot"><span>☀️ <span id="weather">Sunny afternoon</span></span><span id="activity">Your pet is looking around...</span></div></section>
+<section class="world-card"><div class="world-top"><span>🌿 Mosswood Valley</span><span class="live">Living world</span></div><canvas id="world" width="900" height="560" aria-label="A little forest world with a pond, cabin, trees, and your unicorn pet"></canvas><div class="world-foot"><span>☀️ <span id="weather">Sunny afternoon</span></span><span id="activity">Your pet is looking around...</span></div></section>
 <aside class="side">
-<section class="panel"><div class="pet-head"><div class="avatar">🦊</div><div><h3 id="petName">Mochi</h3><p id="mood">Curious • Feeling good</p></div><span class="level" id="level">Lv. 1</span></div>
+<section class="panel"><div class="pet-head"><div class="avatar">🦄</div><div><h3 id="petName">Mochi</h3><p id="mood">Curious • Feeling good</p></div><span class="level" id="level">Lv. 1</span></div>
 <div class="stats">
 <div><div class="statline"><span>😊 Happiness</span><span id="happyText">82%</span></div><div class="bar"><div class="fill" id="happyBar" style="width:82%"></div></div></div>
 <div><div class="statline"><span>🍎 Hunger</span><span id="hungerText">24%</span></div><div class="bar"><div class="fill" id="hungerBar" style="width:24%"></div></div></div>
@@ -75,9 +75,13 @@ if(pet.action==='fish'){ellipse(700,245,20,9,'#fff2b8');ctx.font='22px system-ui
 if(pet.action==='draw'){ctx.font='24px system-ui';ctx.fillText('🎨',pet.x+28,pet.y-28)}
 // pet shadow and fox
 ellipse(pet.x,pet.y+24,25,9,'#46764b66');ctx.save();ctx.translate(pet.x,pet.y);if(pet.dir<0)ctx.scale(-1,1);
-ctx.fillStyle='#e98b4d';ctx.beginPath();ctx.ellipse(0,5,24,18,0,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#fff7ef';ctx.beginPath();ctx.ellipse(0,5,24,18,0,0,Math.PI*2);ctx.fill();
 ctx.beginPath();ctx.moveTo(-16,-5);ctx.lineTo(-23,-27);ctx.lineTo(-5,-15);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(7,-12);ctx.lineTo(20,-31);ctx.lineTo(22,-5);ctx.closePath();ctx.fill();
-ellipse(14,13,12,9,'#fff0d7');ellipse(-18,15,12,7,'#fff0d7');ellipse(7,-1,3,3,'#251a24');ellipse(20,2,2.5,2.5,'#251a24');ellipse(25,8,3,2,'#34202a');
+// rainbow mane and tail
+ctx.strokeStyle='#d98bd5';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-20,1);ctx.quadraticCurveTo(-38,-8,-31,-25);ctx.stroke();
+ctx.strokeStyle='#9a8be8';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-18,1);ctx.quadraticCurveTo(-34,-7,-28,-22);ctx.stroke();
+ctx.fillStyle='#f3c86b';ctx.beginPath();ctx.moveTo(0,-15);ctx.lineTo(8,-39);ctx.lineTo(13,-13);ctx.closePath();ctx.fill();
+ellipse(14,13,12,9,'#fff0d7');ellipse(-18,15,12,7,'#fff0d7');ellipse(7,-1,3,3,'#251a24');ellipse(20,2,2.5,2.5,'#251a24');ellipse(25,8,3,2,'#d98b9c');
 ctx.restore();
 if(pet.action==='sleep'){ctx.font='22px system-ui';ctx.fillText('💤',pet.x+25,pet.y-28)}
 if(pet.action==='draw'){rounded(300,455,160,65,8,'#fff5df');ctx.strokeStyle='#bc796b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(325,493);ctx.lineTo(355,470);ctx.lineTo(380,500);ctx.lineTo(420,470);ctx.stroke()}
