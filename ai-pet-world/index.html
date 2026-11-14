@@ -17,7 +17,7 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:900/560;background:#9ac
 .side{display:flex;flex-direction:column;gap:14px}.panel{padding:16px}.pet-head{display:flex;gap:12px;align-items:center}.avatar{width:54px;height:54px;border-radius:17px;background:#513675;display:grid;place-items:center;font-size:31px}.pet-head h3{margin:0 0 3px}.pet-head p{margin:0;color:var(--muted);font-size:.8rem}.level{margin-left:auto;color:#e4d1ff;font-size:.78rem;background:#513675;padding:6px 9px;border-radius:99px}
 .stats{display:grid;gap:11px;margin-top:17px}.statline{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px}.statline span:last-child{color:var(--muted)}.bar{height:8px;background:#120d1c;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px;transition:width .3s;background:linear-gradient(90deg,#8c61d1,#c6a5ff)}
 h4{margin:0 0 11px;font-size:.95rem}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button,.smallbtn{border:1px solid #634488;background:#342149;color:#f6edff;padding:10px;border-radius:11px;font:inherit;font-size:.82rem;cursor:pointer;transition:.15s}.actions button:hover,.smallbtn:hover{background:#513675;transform:translateY(-1px)}button:focus-visible,a:focus-visible{outline:2px solid #d8bdff;outline-offset:2px}.actions button span{display:block;font-size:1.25rem;margin-bottom:3px}.actions .wide{grid-column:1/-1}
-.thought{font-size:.88rem;line-height:1.5;color:#e9dcff;background:#130d20;border:1px solid #47305f;border-radius:12px;padding:12px;min-height:60px}.log{display:flex;flex-direction:column;gap:9px;max-height:175px;overflow:auto}.event{font-size:.78rem;color:var(--muted);line-height:1.4;display:flex;gap:8px}.event b{color:#e9dcff;font-weight:600}.inventory{display:flex;flex-wrap:wrap;gap:7px}.item{background:#130d20;border:1px solid #44305a;border-radius:9px;padding:6px 9px;font-size:.76rem;color:#dfd0f3}
+.request-text{font-size:.86rem;line-height:1.45;color:#e9dcff;background:#130d20;border:1px solid #47305f;border-radius:12px;padding:12px;min-height:54px;margin-bottom:10px}.request-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.request-buttons button{border:1px solid #634488;border-radius:10px;padding:10px;font:inherit;font-size:.82rem;cursor:pointer;color:#fff}.accept{background:#315c43}.decline{background:#493047}.request-buttons button:disabled{opacity:.45;cursor:default}.thought{font-size:.88rem;line-height:1.5;color:#e9dcff;background:#130d20;border:1px solid #47305f;border-radius:12px;padding:12px;min-height:60px}.log{display:flex;flex-direction:column;gap:9px;max-height:175px;overflow:auto}.event{font-size:.78rem;color:var(--muted);line-height:1.4;display:flex;gap:8px}.event b{color:#e9dcff;font-weight:600}.inventory{display:flex;flex-wrap:wrap;gap:7px}.item{background:#130d20;border:1px solid #44305a;border-radius:9px;padding:6px 9px;font-size:.76rem;color:#dfd0f3}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2b1b3d;border:1px solid #8060a8;border-radius:12px;padding:10px 15px;box-shadow:0 10px 35px #0008;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}
 @media(max-width:820px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side .panel:first-child{grid-column:1/-1}}
 @media(max-width:520px){header{padding:13px}.intro{display:block}.side{display:flex}.world-foot{font-size:.72rem}}
@@ -42,13 +42,14 @@ h4{margin:0 0 11px;font-size:.95rem}.actions{display:grid;grid-template-columns:
 <button data-action="home"><span>🏡</span>Go home</button><button data-action="snack"><span>🍓</span>Have a snack</button>
 <button class="wide" data-action="play"><span>💜</span>Spend time together</button>
 </div></section>
+<section class="panel" id="requestPanel"><h4>✨ Mochi's little request</h4><div class="request-text" id="requestText">Mochi is thinking about what to ask for...</div><div class="request-buttons"><button class="accept" id="acceptRequest" disabled>✓ Accept</button><button class="decline" id="declineRequest" disabled>✕ Decline</button></div></section>
 <section class="panel"><h4>💭 What's on their mind?</h4><div class="thought" id="thought">“I wonder what that little pond looks like today...”</div></section>
 <section class="panel"><h4>🎒 Their pockets</h4><div class="inventory" id="inventory"><span class="item">🍓 Berries × 2</span><span class="item">🪵 Wood × 0</span><span class="item">🐟 Fish × 0</span><span class="item">🖼️ Art × 0</span></div></section>
 <section class="panel"><h4>📖 Little life updates</h4><div class="log" id="log"><div class="event"><b>Just now</b> Mochi woke up in Mosswood Valley.</div></div></section>
 </aside></div></main><div class="toast" id="toast"></div>
 <script>
 const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',frame:0,dir:1};let state={happiness:82,hunger:24,energy:88,xp:0,level:1,berries:2,wood:0,fish:0,art:0,thought:'I wonder what that little pond looks like today...',activity:'Wandering around',logs:[],name:'Mochi'};
+const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',frame:0,dir:1};let state={happiness:82,hunger:24,energy:88,xp:0,level:1,berries:2,wood:0,fish:0,art:0,thought:'I wonder what that little pond looks like today...',activity:'Wandering around',logs:[],name:'Mochi',request:null,hasCar:false};
 const $=id=>document.getElementById(id);const rand=(a,b)=>Math.random()*(b-a)+a;const pick=a=>a[Math.floor(Math.random()*a.length)];
 function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
@@ -70,6 +71,8 @@ rounded(72,290,180,130,12,'#9b6847');ctx.fillStyle='#74462f';ctx.beginPath();ctx
 // mushrooms + flowers
 for(let i=0;i<15;i++){let x=280+(i*41)%300,y=410+(i*23)%100;ellipse(x,y,4,5,'#f4e6cf');ellipse(x,y-4,7,4,i%2?'#e58a85':'#d56d83')}
 ctx.font='bold 18px system-ui';ctx.fillStyle='#234d36';ctx.fillText('MOSSWOOD',615,490);ctx.font='14px system-ui';ctx.fillText('POND',680,455);ctx.fillText('HOME',132,445);
+// Mochi's little car
+if(state.hasCar){rounded(110,465,58,24,8,'#d76e9b');ellipse(122,491,7,7,'#292238');ellipse(157,491,7,7,'#292238');rounded(122,450,28,19,6,'#f4c6df');}
 // activity markers
 if(pet.action==='fish'){ellipse(700,245,20,9,'#fff2b8');ctx.font='22px system-ui';ctx.fillText('🎣',682,235)}
 if(pet.action==='draw'){ctx.font='24px system-ui';ctx.fillText('🎨',pet.x+28,pet.y-28)}
@@ -111,6 +114,17 @@ if(a==='play'){state.happiness=Math.min(100,state.happiness+16);state.energy=Mat
 renderUI();
 }
 document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>doAction(b.dataset.action)));
+const requests=[
+ {text:'Mochi wants to get a little car 🚗',kind:'car'},
+ {text:'Mochi wants to go to the Sunny Meadow 🌼',kind:'meadow'},
+ {text:'Mochi wants to visit Crystal Cove 🏝️',kind:'cove'},
+ {text:'Mochi wants to explore the old castle 🏰',kind:'castle'},
+ {text:'Mochi wants to get a cozy little house upgrade 🏡',kind:'house'}
+];
+function showRequest(){if(state.request)return;state.request=pick(requests);$('requestText').textContent=state.request.text;$('acceptRequest').disabled=false;$('declineRequest').disabled=false;}
+function clearRequest(){state.request=null;$('requestText').textContent='Mochi is thinking about what to ask for...';$('acceptRequest').disabled=true;$('declineRequest').disabled=true;}
+$('acceptRequest').addEventListener('click',()=>{if(!state.request)return;const r=state.request;clearRequest();if(r.kind==='car'){if(state.hasCar){thought('I already have my little car!');log('Mochi asked for another car, but already has one.');}else{state.hasCar=true;thought('YAY! My very own little car! 🚗');log('You accepted Mochi\'s request and got a tiny car.');}}else{const d={meadow:[390,160,'visiting Sunny Meadow'],cove:[700,345,'visiting Crystal Cove'],castle:[520,120,'exploring the old castle'],house:[175,410,'upgrading the cozy cabin']}[r.kind];go(d[0],d[1],d[2]);thought('Thanks for saying yes! Let\'s go!');log('You accepted Mochi\'s request: '+d[2]+'.');if(r.kind==='house'){state.happiness=Math.min(100,state.happiness+10);state.wood=Math.max(0,state.wood-1);}}renderUI();});
+$('declineRequest').addEventListener('click',()=>{if(!state.request)return;thought('That\'s okay! Maybe another time.');log('You declined Mochi\'s request.');clearRequest();renderUI();});
 function autonomous(){
 if(pet.x===pet.targetX&&pet.y===pet.targetY||Math.hypot(pet.x-pet.targetX,pet.y-pet.targetY)<4){
 const a=pet.action;
@@ -140,5 +154,5 @@ try{localStorage.setItem('aiPetWorldSave',JSON.stringify(state))}catch(e){}
 }
 function tick(){state.hunger=Math.min(100,state.hunger+.08);if(state.energy>0&&pet.action!=='heading home')state.energy=Math.max(0,state.energy-.035);if(pet.x!==pet.targetX||pet.y!==pet.targetY){let dx=pet.targetX-pet.x,dy=pet.targetY-pet.y,d=Math.hypot(dx,dy),step=1.7;pet.x+=dx/d*Math.min(step,d);pet.y+=dy/d*Math.min(step,d);pet.dir=dx>=0?1:-1;}else autonomous();pet.frame++;drawWorld();if(pet.frame%15===0)renderUI()}
 try{const saved=JSON.parse(localStorage.getItem('aiPetWorldSave')||'null');if(saved){Object.assign(state,saved);renderUI();thought('I am back! I wonder what we should do today.');}}catch(e){}
-log('Mochi woke up in Mosswood Valley.');drawWorld();setInterval(tick,40);setInterval(()=>{if(pet.action==='idle')chooseOwnActivity()},5000);
+log('Mochi woke up in Mosswood Valley.');drawWorld();setTimeout(showRequest,7000);setInterval(()=>{if(!state.request&&Math.random()>.35)showRequest()},28000);setInterval(tick,40);setInterval(()=>{if(pet.action==='idle')chooseOwnActivity()},5000);
 </script></body></html>
