@@ -115,18 +115,19 @@ function drawWorld(){
  ctx.restore();
 
  ctx.save();ctx.translate(-left,-top);
- const cell=220, sx=Math.floor(left/cell)-1, ex=Math.ceil((left+W)/cell)+1, sy=Math.floor(top/cell)-1, ey=Math.ceil((top+H)/cell)+1;
+ const cell=420, sx=Math.floor(left/cell)-1, ex=Math.ceil((left+W)/cell)+1, sy=Math.floor(top/cell)-1, ey=Math.ceil((top+H)/cell)+1;
  for(let gx=sx;gx<=ex;gx++)for(let gy=sy;gy<=ey;gy++){
-  const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+35+(seed%1)*125,y=gy*cell+35+((seed*7.3)%1)*125;
-  for(let j=0;j<58;j++){const px=gx*cell+((j*73+seed*90)%205),py=gy*cell+((j*47+seed*130)%205);ctx.strokeStyle=j%2?'#6fae65':'#c0e3a3';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,py+3);ctx.quadraticCurveTo(px-3,py-2,px-2,py-5);ctx.stroke();if(j%4===0)ellipse(px+5,py+3,2,2,'#e5d58a')}
-  // Dense, repeatable woodland clusters: broadleaf trees mixed with tall evergreens.
-  for(let t=0;t<6;t++){
+  const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+70+(seed%1)*230,y=gy*cell+70+((seed*7.3)%1)*230;
+  for(let j=0;j<72;j++){const px=gx*cell+((j*97+seed*140)%395),py=gy*cell+((j*61+seed*190)%395);ctx.strokeStyle=j%2?'#6fae65':'#c0e3a3';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,py+3);ctx.quadraticCurveTo(px-3,py-2,px-2,py-5);ctx.stroke();if(j%4===0)ellipse(px+5,py+3,2,2,'#e5d58a')}
+  // Two deliberately separated trees per woodland section, with a clear space around the cabin.
+  for(let t=0;t<2;t++){
    const n=Math.abs(Math.sin((gx*19+t*7)*91.7+(gy*23+t)*17.3)*43758.5453)%1;
-   const tx=gx*cell+18+((n*173+t*41)%184),ty=gy*cell+18+((n*119+t*53)%184);
-   if(n>.025)tree(tx,ty,.58+((n*3+t*.17)%0.52),((gx+gy+t)%4===0)?1:0);
+   const tx=gx*cell+(t===0?88:310)+n*22,ty=gy*cell+(t===0?105:305)+n*22;
+   const nearCabin=Math.hypot(tx-162,ty-335)<205;
+   if(!nearCabin)tree(tx,ty,.66+(n*.12),((gx+gy+t)%4===0)?1:0);
   }
-  if(seed>.88){ellipse(x+25,y+21,57,35,'#467e68');ellipse(x+25,y+15,53,32,'#397fa4');ellipse(x+25,y+11,47,26,'#68b5d0');ctx.strokeStyle='#b2e3e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+10,y+6,18,5,-.2,0,Math.PI*2);ctx.stroke();}
-  if(seed<.12){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
+  if(seed>.91){ellipse(x+25,y+21,57,35,'#467e68');ellipse(x+25,y+15,53,32,'#397fa4');ellipse(x+25,y+11,47,26,'#68b5d0');ctx.strokeStyle='#b2e3e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+10,y+6,18,5,-.2,0,Math.PI*2);ctx.stroke();}
+  if(seed<.08){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
  }
  // Draw the cabin and Mochi in the same camera/world coordinate space.
  ctx.restore();
