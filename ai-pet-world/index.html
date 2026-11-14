@@ -66,10 +66,10 @@ function tree(x,y,s=1,kind=0){
   for(let q=0;q<5;q++){let yy=-22-q*17,w=39-q*5;ctx.fillStyle=['#214d38','#2c6343','#34734a','#285a40','#39784b'][q];ctx.beginPath();ctx.moveTo(0,yy-47);ctx.quadraticCurveTo(-w*.7,yy-8,-w,yy+12);ctx.quadraticCurveTo(0,yy+4,w,yy+12);ctx.quadraticCurveTo(w*.7,yy-8,0,yy-47);ctx.fill();ctx.strokeStyle='#78a96b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,yy-35);ctx.lineTo(0,yy+2);ctx.stroke();}
  }else{
   const blobs=[[-27,-52,29,32],[-3,-76,31,34],[27,-55,30,33],[-8,-42,34,30],[18,-82,22,25],[-36,-75,20,25]];
-  const shades=['#245b3d','#2d7046','#367d4d','#438951','#55975a','#6aa762'];
-  blobs.forEach((b,i)=>{const g=ctx.createRadialGradient(b[0]-9,b[1]-12,2,b[0],b[1],b[2]+8);g.addColorStop(0,i%2?'#9bc978':'#83bd6b');g.addColorStop(.42,shades[i]);g.addColorStop(1,'#1e5038');ellipse(b[0],b[1],b[2],b[3],g)});
+  const shades=['#315f32','#3d7138','#4b8240','#568f45','#659b4e','#76a957'];
+  blobs.forEach((b,i)=>{const g=ctx.createRadialGradient(b[0]-9,b[1]-12,2,b[0],b[1],b[2]+8);g.addColorStop(0,i%2?'#b2d887':'#9dcc78');g.addColorStop(.42,shades[i]);g.addColorStop(1,'#294f2d');ellipse(b[0],b[1],b[2],b[3],g)});
   // leaf clusters and small sunlit flecks
-  for(let i=0;i<42;i++){const a=i*2.399,r=10+(i%7)*5,xx=Math.cos(a)*r,yy=-61+Math.sin(a)*r*.72;ellipse(xx,yy,2.2+(i%3)*.5,2.8,i%4===0?'#b2d67b':i%3===0?'#79b765':'#347849')}
+  for(let i=0;i<42;i++){const a=i*2.399,r=10+(i%7)*5,xx=Math.cos(a)*r,yy=-61+Math.sin(a)*r*.72;ellipse(xx,yy,2.2+(i%3)*.5,2.8,i%4===0?'#c0df8b':i%3===0?'#8fbd68':'#477e3d')}
  }
  ctx.restore();
 }
