@@ -12,7 +12,7 @@ a.back{color:#ddccff;text-decoration:none;border:1px solid #60417f;padding:9px 1
 main{width:min(1180px,calc(100% - 28px));margin:24px auto 60px}.intro{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:16px}.intro h2{font-size:clamp(1.5rem,4vw,2.2rem);margin:0;letter-spacing:-.04em}.intro p{color:var(--muted);margin:6px 0 0}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}.world-card,.panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 18px 45px #0003}
 .world-top{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);font-size:.9rem}.live{color:#9ef0b5}.live:before{content:"";display:inline-block;width:7px;height:7px;background:#69e28c;border-radius:50%;margin-right:7px}
-canvas{display:block;width:100%;height:auto;aspect-ratio:900/560;background:#9acb91;image-rendering:pixelated}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/560;background:#9acb91;image-rendering:auto}
 .world-foot{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--line)}
 .side{display:flex;flex-direction:column;gap:14px}.panel{padding:16px}.pet-head{display:flex;gap:12px;align-items:center}.avatar{width:54px;height:54px;border-radius:17px;background:#513675;display:grid;place-items:center;font-size:31px}.pet-head h3{margin:0 0 3px}.pet-head p{margin:0;color:var(--muted);font-size:.8rem}.level{margin-left:auto;color:#e4d1ff;font-size:.78rem;background:#513675;padding:6px 9px;border-radius:99px}
 .stats{display:grid;gap:11px;margin-top:17px}.statline{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px}.statline span:last-child{color:var(--muted)}.bar{height:8px;background:#120d1c;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px;transition:width .3s;background:linear-gradient(90deg,#8c61d1,#c6a5ff)}
@@ -53,7 +53,17 @@ const W=900,H=560;let pet={x:445,y:315,targetX:445,targetY:315,action:'wander',f
 const $=id=>document.getElementById(id);const rand=(a,b)=>Math.random()*(b-a)+a;const pick=a=>a[Math.floor(Math.random()*a.length)];
 function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
-function tree(x,y,s=1){ellipse(x,y+19*s,22*s,8*s,'#5d8b50');rounded(x-5*s,y-7*s,10*s,29*s,4,'#8b5b39');ellipse(x,y-19*s,25*s,27*s,'#367d50');ellipse(x-12*s,y-23*s,15*s,17*s,'#4c995c');ellipse(x+12*s,y-27*s,15*s,17*s,'#2e7049')}
+function tree(x,y,s=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ ellipse(3,25,31,10,'#426b3f55');
+ const trunk=ctx.createLinearGradient(-8,0,9,0);trunk.addColorStop(0,'#68432e');trunk.addColorStop(.45,'#a87349');trunk.addColorStop(1,'#70462f');
+ rounded(-7,-5,14,43,5,trunk);
+ ctx.strokeStyle='#d19a68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-2,5);ctx.lineTo(-4,30);ctx.moveTo(4,12);ctx.lineTo(5,26);ctx.stroke();
+ const crown=ctx.createRadialGradient(-12,-38,4,0,-25,48);crown.addColorStop(0,'#83c878');crown.addColorStop(.48,'#438e54');crown.addColorStop(1,'#235b3d');
+ ellipse(0,-31,34,38,crown);ellipse(-22,-25,23,27,'#3f8950');ellipse(22,-30,24,28,'#347a48');ellipse(-9,-48,20,20,'#68aa5e');
+ for(let i=0;i<9;i++){const a=i*2.4;ellipse(Math.cos(a)*22-5,-31+Math.sin(a)*23,3,2,'#a1d27b')}
+ ctx.restore();
+}
 function drawWorld(){
  ctx.clearRect(0,0,W,H);
  if(pet.indoor){
@@ -62,31 +72,45 @@ function drawWorld(){
   ctx.fillStyle='#f0d5ad';ctx.fillRect(18,18,W-36,H-36);
   ctx.strokeStyle='#c49b70';ctx.lineWidth=8;ctx.strokeRect(18,18,W-36,H-36);
   for(let x=35;x<W;x+=58)for(let y=35;y<H;y+=58){ctx.strokeStyle='#d8b88e';ctx.lineWidth=1;ctx.strokeRect(x,y,58,58)}
-  rounded(65,55,210,105,12,'#a96f4b');rounded(82,70,176,76,8,'#c68e60');
-  rounded(650,70,175,115,14,'#6e4c78');rounded(665,84,145,86,9,'#9d77a6');
-  rounded(350,55,180,75,12,'#b47b54');rounded(366,68,148,48,7,'#d7a879');
-  rounded(60,390,220,105,14,'#8b6248');rounded(76,405,188,75,9,'#b98a65');
-  rounded(650,390,190,105,14,'#64816a');rounded(666,405,158,75,9,'#91ac87');
-  ctx.fillStyle='#74503a';ctx.font='bold 20px system-ui';ctx.fillText('MOCHI’S COZY HOME',W/2-105,215);
+  rounded(65,55,210,105,15,'#8e573e');rounded(75,65,190,85,12,'#b97b55');rounded(88,77,164,61,8,'#d69b6e');
+  rounded(650,70,175,115,14,'#6e4c78');rounded(660,80,155,95,11,'#9d77a6');rounded(675,94,125,68,8,'#c4a2c8');
+  rounded(350,55,180,75,12,'#94613e');rounded(360,65,160,55,9,'#d7a879');rounded(372,75,136,34,6,'#f0c99b');
+  rounded(60,390,220,105,14,'#76513d');rounded(70,400,200,85,11,'#b98a65');rounded(88,415,164,55,8,'#d9b48a');
+  rounded(650,390,190,105,14,'#4e6c53');rounded(660,400,170,85,11,'#91ac87');rounded(675,415,140,55,8,'#b7c99a');
+  // cozy rug, wall pictures and window light
+  rounded(350,285,200,130,18,'#b96d78');rounded(360,295,180,110,14,'#e4a0a0');
+  ctx.strokeStyle='#f4d4bb';ctx.lineWidth=3;ctx.strokeRect(375,310,150,80);
+  rounded(400,170,100,58,8,'#7d523d');rounded(408,178,84,42,5,'#9bd5e3');ctx.strokeStyle='#f7e5b9';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(450,178);ctx.lineTo(450,220);ctx.moveTo(408,199);ctx.lineTo(492,199);ctx.stroke();
+  ctx.fillStyle='#8c6048';ctx.fillRect(50,250,800,5);
+  ctx.fillStyle='#74503a';ctx.font='bold 20px system-ui';ctx.fillText('MOCHI’S COZY HOME',W/2-105,255);
   ctx.font='15px system-ui';ctx.fillStyle='#76543d';ctx.fillText('A warm little place to rest',W/2-91,242);
   drawPetAt(W/2+camera.x,H/2+camera.y);
   ctx.fillStyle='#76543d';ctx.font='14px system-ui';ctx.fillText('🛏️ Bed',105,525);ctx.fillText('🧸 Toy corner',680,525);
   return;
  }
  const left=camera.x-W/2,top=camera.y-H/2;
- ctx.fillStyle='#9acb91';ctx.fillRect(0,0,W,H);
+ const ground=ctx.createLinearGradient(0,0,0,H);ground.addColorStop(0,'#a8d69a');ground.addColorStop(.55,'#91c782');ground.addColorStop(1,'#78b66f');ctx.fillStyle=ground;ctx.fillRect(0,0,W,H);
  // Infinite grass: scenery is generated from world-space grid cells.
  const cell=220, sx=Math.floor(left/cell)-1, ex=Math.ceil((left+W)/cell)+1, sy=Math.floor(top/cell)-1, ey=Math.ceil((top+H)/cell)+1;
  for(let gx=sx;gx<=ex;gx++)for(let gy=sy;gy<=ey;gy++){
   const seed=Math.abs(Math.sin(gx*127.1+gy*311.7)*43758.5453),x=gx*cell+35+(seed%1)*125,y=gy*cell+35+((seed*7.3)%1)*125;
-  for(let j=0;j<18;j++){const px=gx*cell+((j*73+seed*90)%205),py=gy*cell+((j*47+seed*130)%205);ellipse(px,py,3+(j%3),2,j%2?'#8fc184':'#a8d69b')}
+  for(let j=0;j<34;j++){const px=gx*cell+((j*73+seed*90)%205),py=gy*cell+((j*47+seed*130)%205);ctx.strokeStyle=j%2?'#6fae65':'#c0e3a3';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,py+3);ctx.quadraticCurveTo(px-3,py-2,px-2,py-5);ctx.stroke();if(j%4===0)ellipse(px+5,py+3,2,2,'#e5d58a')}
   if(seed>.34&&seed<.83)tree(x,y,.72+(seed%0.4));
-  if(seed>.88){ellipse(x+25,y+15,52,31,'#558fba');ellipse(x+25,y+12,44,24,'#6bb0ce');}
+  if(seed>.88){ellipse(x+25,y+21,57,35,'#467e68');ellipse(x+25,y+15,53,32,'#397fa4');ellipse(x+25,y+11,47,26,'#68b5d0');ctx.strokeStyle='#b2e3e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+10,y+6,18,5,-.2,0,Math.PI*2);ctx.stroke();}
   if(seed<.12){ellipse(x,y,9,7,'#e58a85');ellipse(x+12,y+8,7,5,'#f4e6cf')}
  }
  // A familiar home remains at its world location, no matter how far Mochi roams.
  ctx.save();ctx.translate(-left,-top);
- rounded(72,290,180,130,12,'#9b6847');ctx.fillStyle='#74462f';ctx.beginPath();ctx.moveTo(55,300);ctx.lineTo(160,215);ctx.lineTo(268,300);ctx.closePath();ctx.fill();rounded(139,345,46,75,7,'#533b35');rounded(89,318,34,32,5,'#a9d8e4');rounded(199,318,34,32,5,'#a9d8e4');rounded(142,375,6,6,3,'#d8b46c');
+ ellipse(162,425,125,18,'#426d4355');rounded(72,290,180,130,12,'#a8754e');
+ const wall=ctx.createLinearGradient(70,290,250,420);wall.addColorStop(0,'#c18a5b');wall.addColorStop(1,'#87583d');rounded(72,290,180,130,12,wall);
+ ctx.strokeStyle='#75482f';ctx.lineWidth=4;for(let yy=310;yy<420;yy+=27){ctx.beginPath();ctx.moveTo(75,yy);ctx.lineTo(249,yy);ctx.stroke()}
+ ctx.fillStyle='#68432f';ctx.beginPath();ctx.moveTo(48,302);ctx.lineTo(160,205);ctx.lineTo(276,302);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#9b6045';ctx.beginPath();ctx.moveTo(60,297);ctx.lineTo(160,218);ctx.lineTo(264,297);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#c98765';ctx.lineWidth=4;for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(80+i*28,282-i*20);ctx.lineTo(160+i*20,220+i*13);ctx.stroke()}
+ rounded(139,345,46,75,7,'#533b35');rounded(144,350,36,65,5,'#80533c');ellipse(175,382,3,3,'#e7c47b');
+ rounded(89,318,34,32,5,'#6c4a39');rounded(94,323,24,22,3,'#9bd5e3');ctx.strokeStyle='#e8d7ad';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(106,323);ctx.lineTo(106,345);ctx.moveTo(94,334);ctx.lineTo(118,334);ctx.stroke();
+ rounded(199,318,34,32,5,'#6c4a39');rounded(204,323,24,22,3,'#9bd5e3');ctx.stroke();ctx.beginPath();ctx.moveTo(216,323);ctx.lineTo(216,345);ctx.moveTo(204,334);ctx.lineTo(228,334);ctx.stroke();
+ rounded(132,282,56,9,4,'#70432f');
   ctx.fillStyle='#234d36';ctx.font='bold 15px system-ui';ctx.fillText('MOCHI’S HOME',93,440);
   if(state.hasCar){rounded(110,465,58,24,8,'#d76e9b');ellipse(122,491,7,7,'#292238');ellipse(157,491,7,7,'#292238');rounded(122,450,28,19,6,'#f4c6df');}
   if(pet.action==='fish'){ctx.font='22px system-ui';ctx.fillText('🎣',pet.x+12,pet.y-25)}
