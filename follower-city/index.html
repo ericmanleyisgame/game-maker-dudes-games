@@ -17,6 +17,7 @@ footer{border-top:1px solid #ffffff12;text-align:center;color:#777995;padding:26
 @media(max-width:760px){.city3d-wrap{height:460px}.nav{display:none}.city{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-top:52px}.city .house:nth-child(n+7){display:none}.resident-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{gap:24px}.stat strong{font-size:1.4rem}}
 @media(max-width:480px){.city3d-wrap{height:390px}.hero{padding-top:48px}.hero p{font-size:.95rem}.section-head{align-items:stretch;flex-direction:column}.search{width:100%}.city{grid-template-columns:repeat(2,minmax(0,1fr));min-height:340px}.city .house:nth-child(n+5){display:none}.resident-grid{grid-template-columns:1fr}.city-foot{font-size:.65rem}}
 </style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}</script>
 </head>
 <body>
 <nav class="top"><div class="brand"><div class="brandmark" aria-hidden="true">⌂</div>Follower City</div><div class="nav"><a href="#city">Explore city</a><a href="#residents">Residents</a></div><button class="admin-btn" id="openAdmin">Manage residents</button></nav>
@@ -57,8 +58,8 @@ render();
 </script>
 
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const canvas=document.getElementById('cityCanvas');
 const wrap=canvas.parentElement;
 const scene=new THREE.Scene();
